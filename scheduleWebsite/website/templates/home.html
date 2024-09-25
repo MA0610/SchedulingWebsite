@@ -1,1 +1,88 @@
-{% extends "base.html" %} {% block title %}Changed{% endblock %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Class Schedule</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .schedule {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            grid-gap: 10px;
+        }
+        .day {
+            padding: 10px;
+            border: 1px solid #ccc;
+            background-color: #f4f4f4;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+        }
+        .class {
+            background-color: #76c7c0;
+            padding: 10px;
+            margin: 10px 0;
+            color: white;
+            cursor: move;
+        }
+        .class.dragging {
+            opacity: 0.5;
+        }
+        .droppable {
+            min-height: 150px;
+            border: 2px dashed #ccc;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Class Schedule</h1>
+
+    <div class="schedule">
+        <div class="day droppable" data-day="Monday">Monday</div>
+        <div class="day droppable" data-day="Tuesday">Tuesday</div>
+        <div class="day droppable" data-day="Wednesday">Wednesday</div>
+        <div class="day droppable" data-day="Thursday">Thursday</div>
+        <div class="day droppable" data-day="Friday">Friday</div>
+        <div class="day droppable" data-day="Saturday">Saturday</div>
+    </div>
+
+    <h2>Available Classes</h2>
+    <div class="available-classes">
+        <div class="class" draggable="true" data-class="Math 101">Math 101</div>
+        <div class="class" draggable="true" data-class="History 201">History 201</div>
+        <div class="class" draggable="true" data-class="Biology 305">Biology 305</div>
+        <div class="class" draggable="true" data-class="Chemistry 102">Chemistry 102</div>
+    </div>
+
+    <script>
+        // Handle drag events
+        const draggables = document.querySelectorAll('.class');
+        const droppables = document.querySelectorAll('.droppable');
+
+        draggables.forEach(draggable => {
+            draggable.addEventListener('dragstart', () => {
+                draggable.classList.add('dragging');
+            });
+
+            draggable.addEventListener('dragend', () => {
+                draggable.classList.remove('dragging');
+            });
+        });
+
+        droppables.forEach(droppable => {
+            droppable.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                const draggingElement = document.querySelector('.dragging');
+                droppable.appendChild(draggingElement);
+            });
+        });
+    </script>
+</body>
+</html>
