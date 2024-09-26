@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,7 +10,7 @@
         }
         .schedule {
             display: grid;
-            grid-template-columns: repeat(6, 1fr);
+            grid-template-columns: repeat(5, 1fr);
             grid-gap: 10px;
         }
         .day {
@@ -38,6 +37,9 @@
             min-height: 150px;
             border: 2px dashed #ccc;
         }
+        .search-container {
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
@@ -50,15 +52,22 @@
         <div class="day droppable" data-day="Wednesday">Wednesday</div>
         <div class="day droppable" data-day="Thursday">Thursday</div>
         <div class="day droppable" data-day="Friday">Friday</div>
-        <div class="day droppable" data-day="Saturday">Saturday</div>
     </div>
 
     <h2>Available Classes</h2>
+
+    <!-- Search Bar -->
+    <div class="search-container">
+        <label for="search">Search Classes:</label>
+        <input type="text" id="search" placeholder="Search by class name or code...">
+    </div>
+
     <div class="available-classes">
         <div class="class" draggable="true" data-class="Math 101">Math 101</div>
         <div class="class" draggable="true" data-class="History 201">History 201</div>
         <div class="class" draggable="true" data-class="Biology 305">Biology 305</div>
         <div class="class" draggable="true" data-class="Chemistry 102">Chemistry 102</div>
+        <div class="class" draggable="true" data-class="Physics 401">Physics 401</div>
     </div>
 
     <script>
@@ -81,6 +90,22 @@
                 e.preventDefault();
                 const draggingElement = document.querySelector('.dragging');
                 droppable.appendChild(draggingElement);
+            });
+        });
+
+        // Search functionality
+        const searchInput = document.getElementById('search');
+        const availableClasses = document.querySelectorAll('.class');
+
+        searchInput.addEventListener('input', function() {
+            const searchText = searchInput.value.toLowerCase();
+            availableClasses.forEach(classElement => {
+                const className = classElement.getAttribute('data-class').toLowerCase();
+                if (className.includes(searchText)) {
+                    classElement.style.display = 'block';
+                } else {
+                    classElement.style.display = 'none';
+                }
             });
         });
     </script>
