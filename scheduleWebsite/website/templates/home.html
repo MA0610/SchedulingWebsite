@@ -1,4 +1,6 @@
-{% extends "base.html" %} {% block title %}Changed{% endblock %}
+{% extends "base.html" %} 
+{% block title %}Class Schedule{% endblock %}
+
 {% block content %}
 <head>
     <meta charset="UTF-8">
@@ -58,6 +60,15 @@
         .scrollable-classes::-webkit-scrollbar-track {
             background: #e4e4e4;  /* Background color of the scrollbar track */
         }
+        .trash-bin {
+            border: 2px dashed red;
+            padding: 20px;
+            text-align: center;
+            color: red;
+            margin-top: 20px;
+            cursor: pointer;
+            min-height: 100px;
+        }
     </style>
 </head>
 <body>
@@ -81,7 +92,7 @@
     </div>
 
     <!-- Scrollable Class List Container -->
-    <div class="scrollable-classes">
+    <div class="scrollable-classes" id="available-classes">
         <div class="class" draggable="true" data-class="Math 101">Math 101</div>
         <div class="class" draggable="true" data-class="History 201">History 201</div>
         <div class="class" draggable="true" data-class="Biology 305">Biology 305</div>
@@ -93,11 +104,19 @@
         <div class="class" draggable="true" data-class="Economics 301">Economics 301</div>
     </div>
 
+    <!-- Trash Bin Section -->
+    <div class="trash-bin droppable" id="trash-bin">
+        Drop here to remove from schedule
+    </div>
+
     <script>
         // Handle drag events
         const draggables = document.querySelectorAll('.class');
         const droppables = document.querySelectorAll('.droppable');
+        const trashBin = document.getElementById('trash-bin');
+        const availableClassesContainer = document.getElementById('available-classes');
 
+        // Make classes draggable
         draggables.forEach(draggable => {
             draggable.addEventListener('dragstart', () => {
                 draggable.classList.add('dragging');
@@ -108,12 +127,26 @@
             });
         });
 
+        // Make day containers droppable
         droppables.forEach(droppable => {
             droppable.addEventListener('dragover', (e) => {
                 e.preventDefault();
                 const draggingElement = document.querySelector('.dragging');
                 droppable.appendChild(draggingElement);
             });
+        });
+
+        // Handle dropping classes into the Trash Bin
+        trashBin.addEventListener('dragover', (e) => {
+            e.preventDefault();
+        });
+
+        trashBin.addEventListener('drop', () => {
+            const draggingElement = document.querySelector('.dragging');
+            if (draggingElement) {
+                // Remove the class from the schedule and return it to the available classes
+                availableClassesContainer.appendChild(draggingElement);
+            }
         });
 
         // Search functionality
