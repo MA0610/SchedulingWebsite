@@ -1,10 +1,9 @@
-{% extends "base.html" %}
-
-{% block title %}
-Dynamic Class Schedule
-{% endblock %}
-
-{% block head %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Class Schedule</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -60,9 +59,9 @@ Dynamic Class Schedule
             background: #e4e4e4;  /* Background color of the scrollbar track */
         }
     </style>
-{% endblock %}
+</head>
+<body>
 
-{% block content %}
     <h1>Class Schedule</h1>
 
     <div class="schedule">
@@ -78,7 +77,7 @@ Dynamic Class Schedule
     <!-- Search Bar -->
     <div class="search-container">
         <label for="search">Search Classes:</label>
-        <input type="text" id="search" class="form-control" placeholder="Search by class name or code...">
+        <input type="text" id="search" placeholder="Search by class name or code...">
     </div>
 
     <!-- Scrollable Class List Container -->
@@ -93,9 +92,7 @@ Dynamic Class Schedule
         <div class="class" draggable="true" data-class="Statistics 202">Statistics 202</div>
         <div class="class" draggable="true" data-class="Economics 301">Economics 301</div>
     </div>
-{% endblock %}
 
-{% block scripts %}
     <script>
         // Handle drag events
         const draggables = document.querySelectorAll('.class');
@@ -135,4 +132,5 @@ Dynamic Class Schedule
             });
         });
     </script>
-{% endblock %}
+</body>
+</html>
