@@ -1,1 +1,224 @@
-{% extends "base.html" %} {% block title %}Changed{% endblock %}
+{% extends "base.html" %} 
+{% block title %}Class Schedule{% endblock %}
+
+{% block content %}
+
+<head>
+
+
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Class Schedule</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .schedule {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-gap: 10px;
+        }
+        .day {
+            padding: 10px;
+            border: 1px solid #ccc;
+            background-color: #f4f4f4;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+        }
+        .class {
+            background-color: #76c7c0;
+            padding: 10px;
+            margin: 10px 0;
+            color: white;
+            cursor: move;
+        }
+        .class.dragging {
+            opacity: 0.5;
+        }
+        .droppable {
+            min-height: 150px;
+            border: 2px dashed #ccc;
+        }
+        .search-container {
+            margin-bottom: 20px;
+        }
+        /* Scrollable container for available classes */
+        .scrollable-classes {
+            max-height: 200px;  /* Set a fixed height for the class list */
+            overflow-y: auto;   /* Enable vertical scrolling */
+            border: 1px solid #ccc;
+            padding: 10px;
+            background-color: #f9f9f9;
+        }
+        .scrollable-classes::-webkit-scrollbar {
+            width: 10px;  /* Width of the scrollbar */
+        }
+        .scrollable-classes::-webkit-scrollbar-thumb {
+            background-color: #76c7c0;  /* Color of the scrollbar thumb */
+            border-radius: 5px;
+        }
+        .scrollable-classes::-webkit-scrollbar-track {
+            background: #e4e4e4;  /* Background color of the scrollbar track */
+        }
+        .trash-bin {
+            border: 2px dashed red;
+            padding: 20px;
+            text-align: center;
+            color: red;
+            margin-top: 20px;
+            cursor: pointer;
+            min-height: 100px;
+        }
+
+
+
+        
+    </style>
+</head>
+
+
+
+
+    <body>
+
+    <h1>Class Schedule</h1>
+
+    <div class="schedule">
+        <div class="day droppable" data-day="Monday">Monday</div>
+        <div class="day droppable" data-day="Tuesday">Tuesday</div>
+        <div class="day droppable" data-day="Wednesday">Wednesday</div>
+        <div class="day droppable" data-day="Thursday">Thursday</div>
+        <div class="day droppable" data-day="Friday">Friday</div>
+    </div>
+
+    <h2>Available Classes</h2>
+
+    <!-- Search Bar -->
+    <div class="search-container">
+        <label for="search">Search Classes:</label>
+        <input type="text" id="search" placeholder="Search by class name or code...">
+    </div>
+
+    <!-- Scrollable Class List Container -->
+    <div class="scrollable-classes" id="available-classes">
+        <div class="class" draggable="true" data-class="Math 101">Math 101</div>
+        <div class="class" draggable="true" data-class="History 201">History 201</div>
+        <div class="class" draggable="true" data-class="Biology 305">Biology 305</div>
+        <div class="class" draggable="true" data-class="Chemistry 102">Chemistry 102</div>
+        <div class="class" draggable="true" data-class="Physics 401">Physics 401</div>
+        <div class="class" draggable="true" data-class="Art 210">Art 210</div>
+        <div class="class" draggable="true" data-class="Computer Science 101">Computer Science 101</div>
+        <div class="class" draggable="true" data-class="Statistics 202">Statistics 202</div>
+        <div class="class" draggable="true" data-class="Economics 301">Economics 301</div>
+    </div>
+
+    <!-- Trash Bin Section -->
+    <div class="trash-bin droppable" id="trash-bin">
+        Drop here to remove from schedule
+    </div>
+
+    <script>
+      
+      function allowDrop(ev) {
+  ev.preventDefault();
+}
+
+function drag(ev) {
+  ev.dataTransfer.setData("draggedElementId", ev.target.id);
+}
+
+function drop(ev) {
+  ev.preventDefault();
+  var draggedElementId = ev.dataTransfer.getData("draggedElementId");
+  var draggedElement = document.querySelector('#' + draggedElementId);
+  ev.target.appendChild(draggedElement);
+
+  console.log(draggedElement.id);
+}
+
+
+      /////////////
+
+        // Handle drag events
+        const draggables = document.querySelectorAll('.class');
+        const droppables = document.querySelectorAll('.droppable');
+        const trashBin = document.getElementById('trash-bin');
+        const availableClassesContainer = document.getElementById('available-classes');
+
+        // Make classes draggable
+        draggables.forEach(draggable => {
+            draggable.addEventListener('dragstart', () => {
+                draggable.classList.add('dragging');
+
+            });    
+
+            draggable.addEventListener('dragend', () => {
+
+                draggable.classList.remove('dragging');
+    
+            });
+        });
+
+        // Make day containers droppable
+        droppables.forEach(droppable => {
+            droppable.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                const draggingElement = document.querySelector('.dragging');
+                droppable.appendChild(draggingElement);
+
+
+            });
+        });
+
+        // Handle dropping classes into the Trash Bin
+        trashBin.addEventListener('dragover', (e) => {
+            e.preventDefault();
+        });
+
+        trashBin.addEventListener('drop', () => {
+            const draggingElement = document.querySelector('.dragging');
+            if (draggingElement) {
+                // Remove the class from the schedule and return it to the available classes
+                availableClassesContainer.appendChild(draggingElement);
+
+            }
+        });
+
+
+   
+
+        // Search functionality
+        const searchInput = document.getElementById('search');
+        const availableClasses = document.querySelectorAll('.class');
+
+        searchInput.addEventListener('input', function() {
+            const searchText = searchInput.value.toLowerCase();
+            availableClasses.forEach(classElement => {
+                const className = classElement.getAttribute('data-class').toLowerCase();
+                if (className.includes(searchText)) {
+                    classElement.style.display = 'block';
+                } else {
+                    classElement.style.display = 'none';
+                }
+            });
+        });
+
+
+
+
+
+
+
+
+
+
+
+    </script>
+</body>
+</html>
+
+{% endblock %}
