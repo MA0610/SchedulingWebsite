@@ -144,16 +144,34 @@
             });
         });
 
-        trashBin.addEventListener('dragover', (e) => {
-            e.preventDefault();
-        });
-
         trashBin.addEventListener('drop', () => {
-            const draggingElement = document.querySelector('.dragging');
-            if (draggingElement) {
+    const draggingElement = document.querySelector('.dragging');
+    if (draggingElement) {
+        const className = draggingElement.getAttribute('data-class');
+
+        // Send request to remove class from the schedule
+        fetch('/remove_class', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ day: 'Monday', class: className }) // Set a valid day or adapt your logic
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Successfully removed, append back to available classes
                 availableClassesContainer.appendChild(draggingElement);
+                console.log('Class removed successfully:', data.schedule);
+            } else {
+                console.error('Error removing class:', data.message);
             }
+        })
+        .catch((error) => {
+            console.error('Error:', error);
         });
+    }
+});
 
         // Search functionality
         const searchInput = document.getElementById('search');
