@@ -45,5 +45,21 @@ def schedule():
 def get_schedules():
     return jsonify(schedules)
 
+
+
+@app.route('/remove_class', methods=['POST'])
+def remove_class():
+    data = request.json
+    day = data.get('day')
+    class_name = data.get('class')
+
+    if day in schedules and class_name in schedules[day]:
+        schedules[day].remove(class_name)
+        return jsonify(success=True, schedule=schedules[day])
+    
+    return jsonify(success=False, message="Class not found")
+
+
+
 if __name__ == '__main__':
     app.run(debug=True)
