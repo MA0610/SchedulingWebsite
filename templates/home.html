@@ -64,14 +64,58 @@
 <body>
     <h1>Class Schedule</h1>
 
-    <div class="schedule">
+    <!-- <div class="schedule">
         <div class="day droppable" data-day="Monday">Monday</div>
         <div class="day droppable" data-day="Tuesday">Tuesday</div>
         <div class="day droppable" data-day="Wednesday">Wednesday</div>
         <div class="day droppable" data-day="Thursday">Thursday</div>
         <div class="day droppable" data-day="Friday">Friday</div>
-    </div>
+    </div> -->
 
+
+    <div class="schedule">
+        <div class="day droppable" data-day="Monday">
+            <h3>Monday</h3>
+            <div class="time-slot droppable" data-time-slot="0">8:30-9:25 am</div>
+            <div class="time-slot droppable" data-time-slot="1">9:35-10:30 am</div>
+            <div class="time-slot droppable" data-time-slot="2">10:40-11:35 am</div>
+            <div class="time-slot droppable" data-time-slot="3">11:45-12:40 pm</div>
+            <div class="time-slot droppable" data-time-slot="4">1:55-2:50 pm</div>
+            <div class="time-slot droppable" data-time-slot="5">3:00-3:55 pm</div>
+            <div class="time-slot droppable" data-time-slot="6">4:05-5:00 pm</div>
+        </div>
+        <div class="day droppable" data-day="Tuesday">
+            <h3>Tuesday</h3>
+            <div class="time-slot droppable" data-time-slot="0">8:30-9:55 am</div>
+            <div class="time-slot droppable" data-time-slot="1">10:05-11:30 am</div>
+            <div class="time-slot droppable" data-time-slot="2">1:30-2:55 pm</div>
+            <div class="time-slot droppable" data-time-slot="3">3:05-4:30 pm</div>
+            <div class="time-slot droppable" data-time-slot="4">5:00-6:25 pm</div>
+        </div>
+        <div class="day droppable" data-day="Wednesday">
+            <h3>Wednesday</h3>
+            <div class="time-slot droppable" data-time-slot="0">8:30-9:25 am</div>
+            <div class="time-slot droppable" data-time-slot="1">1:55-2:50 pm</div>
+            <div class="time-slot droppable" data-time-slot="2">3:00-5:55 pm</div>
+            <div class="time-slot droppable" data-time-slot="3">7:15-10:10 pm</div>
+        </div>
+        <div class="day droppable" data-day="Thursday">
+            <h3>Thursday</h3>
+            <div class="time-slot droppable" data-time-slot="0">8:30-9:55 am</div>
+            <div class="time-slot droppable" data-time-slot="1">10:05-11:30 am</div>
+            <div class="time-slot droppable" data-time-slot="2">1:30-2:55 pm</div>
+            <div class="time-slot droppable" data-time-slot="3">3:05-4:30 pm</div>
+            <div class="time-slot droppable" data-time-slot="4">5:00-6:25 pm</div>
+        </div>
+        <div class="day droppable" data-day="Friday">
+            <h3>Friday</h3>
+            <div class="time-slot droppable" data-time-slot="0">8:30-9:25 am</div>
+            <div class="time-slot droppable" data-time-slot="1">1:55-2:50 pm</div>
+            <div class="time-slot droppable" data-time-slot="2">3:00-5:55 pm</div>
+            <div class="time-slot droppable" data-time-slot="3">7:15-10:10 pm</div>
+        </div>
+    </div>
+    
     <h2>Available Classes</h2>
 
     <div class="search-container">
@@ -96,58 +140,145 @@
     </div>
 
     <script>
-        const draggables = document.querySelectorAll('.class');
-        const droppables = document.querySelectorAll('.droppable');
+        // const draggables = document.querySelectorAll('.class');
+        // const droppables = document.querySelectorAll('.droppable');
         const trashBin = document.getElementById('trash-bin');
         const availableClassesContainer = document.getElementById('available-classes');
+        
+        const draggables = document.querySelectorAll('.class');
+        const droppableTimeSlots = document.querySelectorAll('.time-slot');
 
-        draggables.forEach(draggable => {
-            draggable.addEventListener('dragstart', () => {
-                draggable.classList.add('dragging');
-            });    
+// Dragging functionality
+draggables.forEach(draggable => {
+    draggable.addEventListener('dragstart', () => {
+        draggable.classList.add('dragging');
+    });
 
-            draggable.addEventListener('dragend', () => {
-                draggable.classList.remove('dragging');
-            });
-        });
+    draggable.addEventListener('dragend', () => {
+        draggable.classList.remove('dragging');
+    });
+});
 
-        droppables.forEach(droppable => {
-            droppable.addEventListener('dragover', (e) => {
-                e.preventDefault();
-            });
+// Dropping functionality
+droppableTimeSlots.forEach(timeSlot => {
+    timeSlot.addEventListener('dragover', (e) => {
+        e.preventDefault();
+    });
 
-            droppable.addEventListener('drop', (e) => {
-                e.preventDefault();
-                const draggingElement = document.querySelector('.dragging');
-                if (draggingElement) {
-                    const day = droppable.getAttribute('data-day');
-                    droppable.appendChild(draggingElement);
+    timeSlot.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const draggingElement = document.querySelector('.dragging');
+        if (draggingElement) {
+            const day = timeSlot.closest('.day').getAttribute('data-day');
+            const timeSlotIndex = timeSlot.getAttribute('data-time-slot');
+            timeSlot.appendChild(draggingElement);
 
-                    // Send the drop event to the Flask backend
-                    fetch('/schedule', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ day: day, class: draggingElement.getAttribute('data-class') })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (!data.success) {
-                            console.error('Error scheduling class.');
-                        }
-                    })
-                    .catch((error) => {
-                        console.error('Error:', error);
-                    });
+            // Send the drop event to the Flask backend
+            fetch('/schedule', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ day: day, time_slot: timeSlotIndex, class: draggingElement.getAttribute('data-class') })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    console.error('Error scheduling class.');
                 }
+            })
+            .catch((error) => {
+                console.error('Error:', error);
             });
-        });
+        }
+    });
+});
 
-        trashBin.addEventListener('drop', () => {
+
+
+
+        // draggables.forEach(draggable => {
+        //     draggable.addEventListener('dragstart', () => {
+        //         draggable.classList.add('dragging');
+        //     });    
+
+        //     draggable.addEventListener('dragend', () => {
+        //         draggable.classList.remove('dragging');
+        //     });
+        // });
+
+        // droppables.forEach(droppable => {
+        //     droppable.addEventListener('dragover', (e) => {
+        //         e.preventDefault();
+        //     });
+
+        //     droppable.addEventListener('drop', (e) => {
+        //         e.preventDefault();
+        //         const draggingElement = document.querySelector('.dragging');
+        //         if (draggingElement) {
+        //             const day = droppable.getAttribute('data-day');
+        //             droppable.appendChild(draggingElement);
+
+        //             // Send the drop event to the Flask backend
+        //             fetch('/schedule', {
+        //                 method: 'POST',
+        //                 headers: {
+        //                     'Content-Type': 'application/json'
+        //                 },
+        //                 body: JSON.stringify({ day: day, class: draggingElement.getAttribute('data-class') })
+        //             })
+        //             .then(response => response.json())
+        //             .then(data => {
+        //                 if (!data.success) {
+        //                     console.error('Error scheduling class.');
+        //                 }
+        //             })
+        //             .catch((error) => {
+        //                 console.error('Error:', error);
+        //             });
+        //         }
+        //     });
+        // });
+
+//         trashBin.addEventListener('drop', () => {
+//     const draggingElement = document.querySelector('.dragging');
+//     if (draggingElement) {
+//         const className = draggingElement.getAttribute('data-class');
+
+//         // Send request to remove class from the schedule
+//         fetch('/remove_class', {
+//             method: 'POST',
+//             headers: {
+//                 'Content-Type': 'application/json'
+//             },
+//             body: JSON.stringify({ day: 'Monday', class: className }) // Set a valid day or adapt your logic
+//         })
+//         .then(response => response.json())
+//         .then(data => {
+//             if (data.success) {
+//                 // Successfully removed, append back to available classes
+//                 availableClassesContainer.appendChild(draggingElement);
+//                 console.log('Class removed successfully:', data.schedule);
+//             } else {
+//                 console.error('Error removing class:', data.message);
+//             }
+//         })
+//         .catch((error) => {
+//             console.error('Error:', error);
+//         });
+//     }
+// });
+
+trashBin.addEventListener('dragover', (e) => {
+    e.preventDefault();
+});
+
+trashBin.addEventListener('drop', () => {
     const draggingElement = document.querySelector('.dragging');
     if (draggingElement) {
         const className = draggingElement.getAttribute('data-class');
+        const day = draggingElement.closest('.day').getAttribute('data-day');
+        const timeSlot = draggingElement.closest('.time-slot').getAttribute('data-time-slot');
 
         // Send request to remove class from the schedule
         fetch('/remove_class', {
@@ -155,7 +286,7 @@
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ day: 'Monday', class: className }) // Set a valid day or adapt your logic
+            body: JSON.stringify({ day: day, time_slot: timeSlot, class: className })
         })
         .then(response => response.json())
         .then(data => {
@@ -172,6 +303,8 @@
         });
     }
 });
+
+
 
         // Search functionality
         const searchInput = document.getElementById('search');
