@@ -7,3 +7,6 @@ views = Blueprint('views',__name__)
 def home():
     return render_template("home.html")
 
+#@views.route('/sign-up')
+    #re
+
