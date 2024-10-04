@@ -1,0 +1,322 @@
+{% extends "base.html" %} 
+{% block title %}Class Schedule{% endblock %}
+
+{% block content %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Class Schedule</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .schedule {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-gap: 10px;
+        }
+        .day {
+            padding: 10px;
+            border: 1px solid #ccc;
+            background-color: #f4f4f4;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+        }
+        .class {
+            background-color: #76c7c0;
+            padding: 10px;
+            margin: 10px 0;
+            color: white;
+            cursor: move;
+        }
+        .class.dragging {
+            opacity: 0.5;
+        }
+        .droppable {
+            min-height: 150px;
+            border: 2px dashed #ccc;
+        }
+        .search-container {
+            margin-bottom: 20px;
+        }
+        .scrollable-classes {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            background-color: #f9f9f9;
+        }
+        .trash-bin {
+            border: 2px dashed red;
+            padding: 20px;
+            text-align: center;
+            color: red;
+            margin-top: 20px;
+            cursor: pointer;
+            min-height: 100px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Class Schedule</h1>
+
+    <!-- <div class="schedule">
+        <div class="day droppable" data-day="Monday">Monday</div>
+        <div class="day droppable" data-day="Tuesday">Tuesday</div>
+        <div class="day droppable" data-day="Wednesday">Wednesday</div>
+        <div class="day droppable" data-day="Thursday">Thursday</div>
+        <div class="day droppable" data-day="Friday">Friday</div>
+    </div> -->
+
+
+    <div class="schedule">
+        <div class="day droppable" data-day="Monday">
+            <h3>Monday</h3>
+            <div class="time-slot droppable" data-time-slot="0">8:30-9:25 am</div>
+            <div class="time-slot droppable" data-time-slot="1">9:35-10:30 am</div>
+            <div class="time-slot droppable" data-time-slot="2">10:40-11:35 am</div>
+            <div class="time-slot droppable" data-time-slot="3">11:45-12:40 pm</div>
+            <div class="time-slot droppable" data-time-slot="4">1:55-2:50 pm</div>
+            <div class="time-slot droppable" data-time-slot="5">3:00-3:55 pm</div>
+            <div class="time-slot droppable" data-time-slot="6">4:05-5:00 pm</div>
+        </div>
+        <div class="day droppable" data-day="Tuesday">
+            <h3>Tuesday</h3>
+            <div class="time-slot droppable" data-time-slot="0">8:30-9:55 am</div>
+            <div class="time-slot droppable" data-time-slot="1">10:05-11:30 am</div>
+            <div class="time-slot droppable" data-time-slot="2">1:30-2:55 pm</div>
+            <div class="time-slot droppable" data-time-slot="3">3:05-4:30 pm</div>
+            <div class="time-slot droppable" data-time-slot="4">5:00-6:25 pm</div>
+        </div>
+        <div class="day droppable" data-day="Wednesday">
+            <h3>Wednesday</h3>
+            <div class="time-slot droppable" data-time-slot="0">8:30-9:25 am</div>
+            <div class="time-slot droppable" data-time-slot="1">1:55-2:50 pm</div>
+            <div class="time-slot droppable" data-time-slot="2">3:00-5:55 pm</div>
+            <div class="time-slot droppable" data-time-slot="3">7:15-10:10 pm</div>
+        </div>
+        <div class="day droppable" data-day="Thursday">
+            <h3>Thursday</h3>
+            <div class="time-slot droppable" data-time-slot="0">8:30-9:55 am</div>
+            <div class="time-slot droppable" data-time-slot="1">10:05-11:30 am</div>
+            <div class="time-slot droppable" data-time-slot="2">1:30-2:55 pm</div>
+            <div class="time-slot droppable" data-time-slot="3">3:05-4:30 pm</div>
+            <div class="time-slot droppable" data-time-slot="4">5:00-6:25 pm</div>
+        </div>
+        <div class="day droppable" data-day="Friday">
+            <h3>Friday</h3>
+            <div class="time-slot droppable" data-time-slot="0">8:30-9:25 am</div>
+            <div class="time-slot droppable" data-time-slot="1">1:55-2:50 pm</div>
+            <div class="time-slot droppable" data-time-slot="2">3:00-5:55 pm</div>
+            <div class="time-slot droppable" data-time-slot="3">7:15-10:10 pm</div>
+        </div>
+    </div>
+    
+    <h2>Available Classes</h2>
+
+    <div class="search-container">
+        <label for="search">Search Classes:</label>
+        <input type="text" id="search" placeholder="Search by class name or code...">
+    </div>
+
+    <div class="scrollable-classes" id="available-classes">
+        <div class="class" draggable="true" data-class="Math 101">Math 101</div>
+        <div class="class" draggable="true" data-class="History 201">History 201</div>
+        <div class="class" draggable="true" data-class="Biology 305">Biology 305</div>
+        <div class="class" draggable="true" data-class="Chemistry 102">Chemistry 102</div>
+        <div class="class" draggable="true" data-class="Physics 401">Physics 401</div>
+        <div class="class" draggable="true" data-class="Art 210">Art 210</div>
+        <div class="class" draggable="true" data-class="Computer Science 101">Computer Science 101</div>
+        <div class="class" draggable="true" data-class="Statistics 202">Statistics 202</div>
+        <div class="class" draggable="true" data-class="Economics 301">Economics 301</div>
+    </div>
+
+    <div class="trash-bin droppable" id="trash-bin">
+        Drop here to remove from schedule
+    </div>
+
+    <script>
+        // const draggables = document.querySelectorAll('.class');
+        // const droppables = document.querySelectorAll('.droppable');
+        const trashBin = document.getElementById('trash-bin');
+        const availableClassesContainer = document.getElementById('available-classes');
+        
+        const draggables = document.querySelectorAll('.class');
+        const droppableTimeSlots = document.querySelectorAll('.time-slot');
+
+// Dragging functionality
+draggables.forEach(draggable => {
+    draggable.addEventListener('dragstart', () => {
+        draggable.classList.add('dragging');
+    });
+
+    draggable.addEventListener('dragend', () => {
+        draggable.classList.remove('dragging');
+    });
+});
+
+// Dropping functionality
+droppableTimeSlots.forEach(timeSlot => {
+    timeSlot.addEventListener('dragover', (e) => {
+        e.preventDefault();
+    });
+
+    timeSlot.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const draggingElement = document.querySelector('.dragging');
+        if (draggingElement) {
+            const day = timeSlot.closest('.day').getAttribute('data-day');
+            const timeSlotIndex = timeSlot.getAttribute('data-time-slot');
+            timeSlot.appendChild(draggingElement);
+
+            // Send the drop event to the Flask backend
+            fetch('/schedule', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ day: day, time_slot: timeSlotIndex, class: draggingElement.getAttribute('data-class') })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    console.error('Error scheduling class.');
+                }
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        }
+    });
+});
+
+
+
+
+        // draggables.forEach(draggable => {
+        //     draggable.addEventListener('dragstart', () => {
+        //         draggable.classList.add('dragging');
+        //     });    
+
+        //     draggable.addEventListener('dragend', () => {
+        //         draggable.classList.remove('dragging');
+        //     });
+        // });
+
+        // droppables.forEach(droppable => {
+        //     droppable.addEventListener('dragover', (e) => {
+        //         e.preventDefault();
+        //     });
+
+        //     droppable.addEventListener('drop', (e) => {
+        //         e.preventDefault();
+        //         const draggingElement = document.querySelector('.dragging');
+        //         if (draggingElement) {
+        //             const day = droppable.getAttribute('data-day');
+        //             droppable.appendChild(draggingElement);
+
+        //             // Send the drop event to the Flask backend
+        //             fetch('/schedule', {
+        //                 method: 'POST',
+        //                 headers: {
+        //                     'Content-Type': 'application/json'
+        //                 },
+        //                 body: JSON.stringify({ day: day, class: draggingElement.getAttribute('data-class') })
+        //             })
+        //             .then(response => response.json())
+        //             .then(data => {
+        //                 if (!data.success) {
+        //                     console.error('Error scheduling class.');
+        //                 }
+        //             })
+        //             .catch((error) => {
+        //                 console.error('Error:', error);
+        //             });
+        //         }
+        //     });
+        // });
+
+//         trashBin.addEventListener('drop', () => {
+//     const draggingElement = document.querySelector('.dragging');
+//     if (draggingElement) {
+//         const className = draggingElement.getAttribute('data-class');
+
+//         // Send request to remove class from the schedule
+//         fetch('/remove_class', {
+//             method: 'POST',
+//             headers: {
+//                 'Content-Type': 'application/json'
+//             },
+//             body: JSON.stringify({ day: 'Monday', class: className }) // Set a valid day or adapt your logic
+//         })
+//         .then(response => response.json())
+//         .then(data => {
+//             if (data.success) {
+//                 // Successfully removed, append back to available classes
+//                 availableClassesContainer.appendChild(draggingElement);
+//                 console.log('Class removed successfully:', data.schedule);
+//             } else {
+//                 console.error('Error removing class:', data.message);
+//             }
+//         })
+//         .catch((error) => {
+//             console.error('Error:', error);
+//         });
+//     }
+// });
+
+trashBin.addEventListener('dragover', (e) => {
+    e.preventDefault();
+});
+
+trashBin.addEventListener('drop', () => {
+    const draggingElement = document.querySelector('.dragging');
+    if (draggingElement) {
+        const className = draggingElement.getAttribute('data-class');
+        const day = draggingElement.closest('.day').getAttribute('data-day');
+        const timeSlot = draggingElement.closest('.time-slot').getAttribute('data-time-slot');
+
+        // Send request to remove class from the schedule
+        fetch('/remove_class', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ day: day, time_slot: timeSlot, class: className })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Successfully removed, append back to available classes
+                availableClassesContainer.appendChild(draggingElement);
+                console.log('Class removed successfully:', data.schedule);
+            } else {
+                console.error('Error removing class:', data.message);
+            }
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+        });
+    }
+});
+
+
+
+        // Search functionality
+        const searchInput = document.getElementById('search');
+        const availableClasses = document.querySelectorAll('.class');
+
+        searchInput.addEventListener('input', function() {
+            const searchText = searchInput.value.toLowerCase();
+            availableClasses.forEach(classElement => {
+                const className = classElement.getAttribute('data-class').toLowerCase();
+                classElement.style.display = className.includes(searchText) ? 'block' : 'none';
+            });
+        });
+    </script>
+</body>
+{% endblock %}
