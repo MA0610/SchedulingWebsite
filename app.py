@@ -53,9 +53,14 @@ def schedule():
     day = data.get('day')
     time_slot_index = int(data.get('time_slot'))
     class_name = data.get('class')
-    
+
     if day in day_to_index and 0 <= time_slot_index < NUM_TIME_SLOTS:
         day_index = day_to_index[day]
+        
+        # Check if the time slot already has a class
+        if len(schedules_3d[day_index][time_slot_index]) > 0:
+            return jsonify(success=False, message="Time slot is already occupied.")
+        
         schedules_3d[day_index][time_slot_index].append(class_name)
         return jsonify(success=True, schedule=schedules_3d)
     
@@ -85,6 +90,28 @@ def remove_class():
 def view_schedules():
     return jsonify(schedules_3d)
 
+#Checks for occupied time slot
+@app.route('/check_time_slot', methods=['GET'])
+def check_time_slot():
+    day = request.args.get('day')
+    time_slot_index = request.args.get('time_slot')
+    
+    # Ensure the values are valid
+    if day is None or time_slot_index is None:
+        return jsonify(success=False, message="Day or time_slot not provided"), 400
+    
+    try:
+        time_slot_index = int(time_slot_index)
+    except ValueError:
+        return jsonify(success=False, message="Invalid time_slot index"), 400
+    
+    # Check if the day and time slot are valid
+    if day in day_to_index and 0 <= time_slot_index < NUM_TIME_SLOTS:
+        day_index = day_to_index[day]
+        is_occupied = len(schedules_3d[day_index][time_slot_index]) > 0
+        return jsonify(occupied=is_occupied)
+    
+    return jsonify(success=False, message="Invalid input"), 400
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -58,11 +58,25 @@
             cursor: pointer;
             min-height: 100px;
         }
+        .notification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 10px 20px;
+            background-color: #ff4444;
+            color: white;
+            border-radius: 5px;
+            z-index: 1000;
+            text-align: center;
+        }
+
     </style>
 </head>
 
 <body>
     <h1>Class Schedule</h1>
+
 
     <!-- <div class="schedule">
         <div class="day droppable" data-day="Monday">Monday</div>
@@ -159,7 +173,24 @@ draggables.forEach(draggable => {
     });
 });
 
-// Dropping functionality
+
+// Function to show the notification
+function showNotification(message) {
+    console.log('Notification Triggered');  // Check if function is called
+    const notification = document.createElement('div');
+    notification.className = 'notification';
+    notification.innerText = message;
+    document.body.appendChild(notification);
+    console.log('Notification Appended');  // Check if notification is appended
+
+    // Automatically remove the notification after 3 seconds
+    setTimeout(() => {
+        console.log('Notification Removed');  // Check if removal is working
+        notification.remove();
+    }, 3000);
+}
+
+
 droppableTimeSlots.forEach(timeSlot => {
     timeSlot.addEventListener('dragover', (e) => {
         e.preventDefault();
@@ -171,136 +202,88 @@ droppableTimeSlots.forEach(timeSlot => {
         if (draggingElement) {
             const day = timeSlot.closest('.day').getAttribute('data-day');
             const timeSlotIndex = timeSlot.getAttribute('data-time-slot');
-            timeSlot.appendChild(draggingElement);
 
-            // Send the drop event to the Flask backend
-            fetch('/schedule', {
+            // Check with the backend if the time slot is already occupied
+            fetch(`/check_time_slot?day=${day}&time_slot=${timeSlotIndex}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.occupied) {
+                        // Notify user that the slot is already taken
+                        showNotification("This time slot is already occupied by another class.");
+                    } else {
+                        // Proceed with the drop and update the backend
+                        fetch('/schedule', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                day: day,
+                                time_slot: timeSlotIndex,
+                                class: draggingElement.getAttribute('data-class')
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                // Successfully scheduled, append the class to the time slot
+                                timeSlot.appendChild(draggingElement);
+                            } else {
+                                // Error occurred, show notification
+                                showNotification(data.message);
+                            }
+                        })
+                        .catch((error) => {
+                            console.error('Error:', error);
+                        });
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                });
+        }
+    });
+});
+
+
+// Trash bin functionality
+trashBin.addEventListener('dragover', (e) => {
+    e.preventDefault();
+});
+
+trashBin.addEventListener('drop', (e) => {
+    e.preventDefault();
+    const draggingElement = document.querySelector('.dragging');
+    if (draggingElement) {
+        // Check if the element is already in the schedule (inside a time slot)
+        const parentTimeSlot = draggingElement.closest('.time-slot');
+        if (parentTimeSlot) {
+            const day = parentTimeSlot.closest('.day').getAttribute('data-day');
+            const timeSlot = parentTimeSlot.getAttribute('data-time-slot');
+            const className = draggingElement.getAttribute('data-class');
+
+            // Remove from schedule
+            fetch('/remove_class', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ day: day, time_slot: timeSlotIndex, class: draggingElement.getAttribute('data-class') })
+                body: JSON.stringify({ day: day, time_slot: timeSlot, class: className })
             })
             .then(response => response.json())
             .then(data => {
-                if (!data.success) {
-                    console.error('Error scheduling class.');
+                if (data.success) {
+                    // Append back to available classes
+                    availableClassesContainer.appendChild(draggingElement);
+                    console.log('Class removed successfully:', data.schedule);
+                } else {
+                    console.error('Error removing class:', data.message);
                 }
             })
             .catch((error) => {
                 console.error('Error:', error);
             });
         }
-    });
-});
-
-
-
-
-        // draggables.forEach(draggable => {
-        //     draggable.addEventListener('dragstart', () => {
-        //         draggable.classList.add('dragging');
-        //     });    
-
-        //     draggable.addEventListener('dragend', () => {
-        //         draggable.classList.remove('dragging');
-        //     });
-        // });
-
-        // droppables.forEach(droppable => {
-        //     droppable.addEventListener('dragover', (e) => {
-        //         e.preventDefault();
-        //     });
-
-        //     droppable.addEventListener('drop', (e) => {
-        //         e.preventDefault();
-        //         const draggingElement = document.querySelector('.dragging');
-        //         if (draggingElement) {
-        //             const day = droppable.getAttribute('data-day');
-        //             droppable.appendChild(draggingElement);
-
-        //             // Send the drop event to the Flask backend
-        //             fetch('/schedule', {
-        //                 method: 'POST',
-        //                 headers: {
-        //                     'Content-Type': 'application/json'
-        //                 },
-        //                 body: JSON.stringify({ day: day, class: draggingElement.getAttribute('data-class') })
-        //             })
-        //             .then(response => response.json())
-        //             .then(data => {
-        //                 if (!data.success) {
-        //                     console.error('Error scheduling class.');
-        //                 }
-        //             })
-        //             .catch((error) => {
-        //                 console.error('Error:', error);
-        //             });
-        //         }
-        //     });
-        // });
-
-//         trashBin.addEventListener('drop', () => {
-//     const draggingElement = document.querySelector('.dragging');
-//     if (draggingElement) {
-//         const className = draggingElement.getAttribute('data-class');
-
-//         // Send request to remove class from the schedule
-//         fetch('/remove_class', {
-//             method: 'POST',
-//             headers: {
-//                 'Content-Type': 'application/json'
-//             },
-//             body: JSON.stringify({ day: 'Monday', class: className }) // Set a valid day or adapt your logic
-//         })
-//         .then(response => response.json())
-//         .then(data => {
-//             if (data.success) {
-//                 // Successfully removed, append back to available classes
-//                 availableClassesContainer.appendChild(draggingElement);
-//                 console.log('Class removed successfully:', data.schedule);
-//             } else {
-//                 console.error('Error removing class:', data.message);
-//             }
-//         })
-//         .catch((error) => {
-//             console.error('Error:', error);
-//         });
-//     }
-// });
-
-trashBin.addEventListener('dragover', (e) => {
-    e.preventDefault();
-});
-
-trashBin.addEventListener('drop', () => {
-    const draggingElement = document.querySelector('.dragging');
-    if (draggingElement) {
-        const className = draggingElement.getAttribute('data-class');
-        const day = draggingElement.closest('.day').getAttribute('data-day');
-        const timeSlot = draggingElement.closest('.time-slot').getAttribute('data-time-slot');
-
-        // Send request to remove class from the schedule
-        fetch('/remove_class', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ day: day, time_slot: timeSlot, class: className })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Successfully removed, append back to available classes
-                availableClassesContainer.appendChild(draggingElement);
-                console.log('Class removed successfully:', data.schedule);
-            } else {
-                console.error('Error removing class:', data.message);
-            }
-        })
-        .catch((error) => {
-            console.error('Error:', error);
-        });
     }
 });
 
