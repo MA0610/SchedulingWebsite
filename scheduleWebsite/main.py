@@ -1,11 +1,14 @@
 from website import create_app
 import pprint
+from dotenv import dotenv_values
 
-
+config = dotenv_values(".env")
 app = create_app()
 
- if __name__ == '__main__':
-     app.run(debug=True)
+if __name__ == '__main__':
+    app.run(debug=True)
+    app.mongodb_client = MongoClient(config['ATLAS_URI'])
+    app.database = app.mongodb_client['DB_NAME']
 
 
 
@@ -75,9 +78,3 @@ app = create_app()
 
 #M OR W OR R (11)
 #7:15-10:10 pm
-
-
-
-
-
-    
