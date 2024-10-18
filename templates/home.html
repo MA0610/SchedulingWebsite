@@ -17,12 +17,16 @@
             height: 100%;
             width: 100%;
             overflow: hidden;  /* Prevent unwanted scrolling */
+            margin: 0;
+            padding: 0;
         }
         /* Main container to manage the layout */
         .main-container {
             display: flex;
             height: 100vh; /* Full-height layout */
             width: 100%;
+            margin: 0;
+            padding: 0;
         }
 
         /* Left panel: Add Course */
@@ -37,7 +41,7 @@
 
         /* Right content (schedule + toolkit) */
         .content {
-            flex: 4; /* Main content takes more space */
+            flex: 6; /* Main content takes more space */
             display: flex;
             width: 100%; /* Ensure full width is used */
             overflow: auto; /* Handle overflow gracefully */
@@ -49,6 +53,7 @@
             grid-template-columns: repeat(5, 1fr); /* Equal-width columns */
             grid-gap: 10px;
             width: 100%; /* Ensure it stretches */
+            
         }
         .day {
             padding: 10px;
@@ -91,7 +96,7 @@
             color: red;
             margin-top: 20px;
             cursor: pointer;
-            min-height: 100px;
+            min-height: 70px;
         }
         .notification {
             position: fixed;
@@ -106,12 +111,37 @@
             text-align: center;
         }
         .container {
-            padding-left: 0 !important;
-            margin-left: 0 !important;
-            padding-right: 0 !important;
-            margin-right: 0 !important;
+            width: 100vw;  /* Full width of the viewport */
+            height: 100vh; /* Full height of the viewport */
+            padding: 0;    /* Remove padding */
+            margin: 0;     /* Remove margin */
+            overflow: hidden; /* Prevent scrolling */
+            display: flex;
+            flex-direction: column;
         }
-
+        .time-selector {
+            padding-bottom: 1em;
+        }
+        .day-button.selected {
+            background-color: #76c7c0;
+            color: white;
+        }
+        .day-button:hover {
+            background-color: #5aa9a3;
+        }
+        #add-course-btn {
+            background-color: #76c7c0;  /* Initial color */
+            color: white;
+            border: none;
+            padding: 3px;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;  /* Smooth transition */
+        }
+        #add-course-btn:hover {
+            background-color: #5aa9a3;  /* Color when hovered */
+        }
     </style>
 </head>
 
@@ -129,11 +159,26 @@
         <div class="addCourse">
             <h3>New Course</h3>
             <div class="add-course">
-                <label for="add">Name:</label>
+                <label for="new-course">Name:</label>
                 <input type="text" id="new-course" placeholder="Enter valid course">
             </div>
-            <div class="days"></div>
+            
+            <div class="day-selector">
+                <label>Select Days: </label>
+                <button class="day-button" data-days="MWF">MWF</button>
+                <button class="day-button" data-days="TuTh">TuTh</button>
+                <button class="day-button" data-days="MW">MW</button>
+            </div>
 
+            <div class="time-selector">
+                <label>Start Time: </label>
+                <input type="text" id="start-time" placeholder="ex. 0:00">
+                <label>End Time: </label>
+                <input type="text" id="end-time" placeholder="ex. 0:00">
+                <button id="add-course-btn">Add Course</button>
+            </div>
+            
+        
             <h3>Classes Available</h3>
             <div class="search-container">
                 <label for="search">Search Classes:</label>
@@ -205,6 +250,50 @@
     
 
     <script>
+        document.getElementById('add-course-btn').addEventListener('click', () => {
+        const courseName = document.getElementById('new-course').value;
+        const startTime = document.getElementById('start-time').value;
+        const endTime = document.getElementById('end-time').value;
+        const selectedDays = Array.from(document.querySelectorAll('.day-button.selected'))
+                                .map(button => button.dataset.days)
+                                .join(', ');
+
+        if (!courseName || !startTime || !endTime || !selectedDays) {
+            alert('Please fill in all fields.');
+            return;
+        }
+
+        const newClass = document.createElement('div');
+        newClass.classList.add('class');
+        newClass.setAttribute('draggable', 'true');
+        newClass.setAttribute('data-class', courseName);
+        newClass.setAttribute('data-days', selectedDays);
+        newClass.setAttribute('data-start-time', startTime);
+        newClass.setAttribute('data-end-time', endTime);
+
+        newClass.textContent = `${courseName} (${selectedDays} ${startTime} - ${endTime})`;
+        
+        newClass.addEventListener('dragstart', () => newClass.classList.add('dragging'));
+        newClass.addEventListener('dragend', () => newClass.classList.remove('dragging'));
+
+        document.getElementById('available-classes').appendChild(newClass);
+
+        // Clear the form inputs
+        document.getElementById('new-course').value = '';
+        document.getElementById('start-time').value = '';
+        document.getElementById('end-time').value = '';
+        document.querySelectorAll('.day-button').forEach(btn => btn.classList.remove('selected'));
+    });
+
+    // Add functionality to select day buttons
+    document.querySelectorAll('.day-button').forEach(button => {
+        button.addEventListener('click', () => {
+            button.classList.toggle('selected');
+        });
+    });
+
+
+
         // const draggables = document.querySelectorAll('.class');
         // const droppables = document.querySelectorAll('.droppable');
         const trashBin = document.getElementById('trash-bin');
@@ -213,132 +302,130 @@
         const draggables = document.querySelectorAll('.class');
         const droppableTimeSlots = document.querySelectorAll('.time-slot');
 
-// Dragging functionality
-draggables.forEach(draggable => {
-    draggable.addEventListener('dragstart', () => {
-        draggable.classList.add('dragging');
-    });
+        // Dragging functionality
+        draggables.forEach(draggable => {
+            draggable.addEventListener('dragstart', () => {
+                draggable.classList.add('dragging');
+            });
 
-    draggable.addEventListener('dragend', () => {
-        draggable.classList.remove('dragging');
-    });
-});
-
-
-// Function to show the notification
-function showNotification(message) {
-    console.log('Notification Triggered');  // Check if function is called
-    const notification = document.createElement('div');
-    notification.className = 'notification';
-    notification.innerText = message;
-    document.body.appendChild(notification);
-    console.log('Notification Appended');  // Check if notification is appended
-
-    // Automatically remove the notification after 3 seconds
-    setTimeout(() => {
-        console.log('Notification Removed');  // Check if removal is working
-        notification.remove();
-    }, 3000);
-}
+            draggable.addEventListener('dragend', () => {
+                draggable.classList.remove('dragging');
+            });
+        });
 
 
-droppableTimeSlots.forEach(timeSlot => {
-    timeSlot.addEventListener('dragover', (e) => {
-        e.preventDefault();
-    });
+        // Function to show the notification
+        function showNotification(message) {
+            console.log('Notification Triggered');  // Check if function is called
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.innerText = message;
+            document.body.appendChild(notification);
+            console.log('Notification Appended');  // Check if notification is appended
 
-    timeSlot.addEventListener('drop', (e) => {
-        e.preventDefault();
-        const draggingElement = document.querySelector('.dragging');
-        if (draggingElement) {
-            const day = timeSlot.closest('.day').getAttribute('data-day');
-            const timeSlotIndex = timeSlot.getAttribute('data-time-slot');
+            // Automatically remove the notification after 3 seconds
+            setTimeout(() => {
+                console.log('Notification Removed');  // Check if removal is working
+                notification.remove();
+            }, 3000);
+        }
 
-            // Check with the backend if the time slot is already occupied
-            fetch(`/check_time_slot?day=${day}&time_slot=${timeSlotIndex}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.occupied) {
-                        // Notify user that the slot is already taken
-                        showNotification("This time slot is already occupied by another class.");
-                    } else {
-                        // Proceed with the drop and update the backend
-                        fetch('/schedule', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                day: day,
-                                time_slot: timeSlotIndex,
-                                class: draggingElement.getAttribute('data-class')
-                            })
-                        })
+
+        droppableTimeSlots.forEach(timeSlot => {
+            timeSlot.addEventListener('dragover', (e) => {
+                e.preventDefault();
+            });
+
+            timeSlot.addEventListener('drop', (e) => {
+                e.preventDefault();
+                const draggingElement = document.querySelector('.dragging');
+                if (draggingElement) {
+                    const day = timeSlot.closest('.day').getAttribute('data-day');
+                    const timeSlotIndex = timeSlot.getAttribute('data-time-slot');
+
+                    // Check with the backend if the time slot is already occupied
+                    fetch(`/check_time_slot?day=${day}&time_slot=${timeSlotIndex}`)
                         .then(response => response.json())
                         .then(data => {
-                            if (data.success) {
-                                // Successfully scheduled, append the class to the time slot
-                                timeSlot.appendChild(draggingElement);
+                            if (data.occupied) {
+                                // Notify user that the slot is already taken
+                                showNotification("This time slot is already occupied by another class.");
                             } else {
-                                // Error occurred, show notification
-                                showNotification(data.message);
+                                // Proceed with the drop and update the backend
+                                fetch('/schedule', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({
+                                        day: day,
+                                        time_slot: timeSlotIndex,
+                                        class: draggingElement.getAttribute('data-class')
+                                    })
+                                })
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        // Successfully scheduled, append the class to the time slot
+                                        timeSlot.appendChild(draggingElement);
+                                    } else {
+                                        // Error occurred, show notification
+                                        showNotification(data.message);
+                                    }
+                                })
+                                .catch((error) => {
+                                    console.error('Error:', error);
+                                });
                             }
                         })
                         .catch((error) => {
                             console.error('Error:', error);
                         });
-                    }
-                })
-                .catch((error) => {
-                    console.error('Error:', error);
-                });
-        }
-    });
-});
-
-
-// Trash bin functionality
-trashBin.addEventListener('dragover', (e) => {
-    e.preventDefault();
-});
-
-trashBin.addEventListener('drop', (e) => {
-    e.preventDefault();
-    const draggingElement = document.querySelector('.dragging');
-    if (draggingElement) {
-        // Check if the element is already in the schedule (inside a time slot)
-        const parentTimeSlot = draggingElement.closest('.time-slot');
-        if (parentTimeSlot) {
-            const day = parentTimeSlot.closest('.day').getAttribute('data-day');
-            const timeSlot = parentTimeSlot.getAttribute('data-time-slot');
-            const className = draggingElement.getAttribute('data-class');
-
-            // Remove from schedule
-            fetch('/remove_class', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ day: day, time_slot: timeSlot, class: className })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Append back to available classes
-                    availableClassesContainer.appendChild(draggingElement);
-                    console.log('Class removed successfully:', data.schedule);
-                } else {
-                    console.error('Error removing class:', data.message);
                 }
-            })
-            .catch((error) => {
-                console.error('Error:', error);
             });
-        }
-    }
-});
+        });
 
+        
+        // Trash bin functionality
+        trashBin.addEventListener('dragover', (e) => {
+            e.preventDefault();
+        });
 
+        trashBin.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const draggingElement = document.querySelector('.dragging');
+            if (draggingElement) {
+                // Check if the element is already in the schedule (inside a time slot)
+                const parentTimeSlot = draggingElement.closest('.time-slot');
+                if (parentTimeSlot) {
+                    const day = parentTimeSlot.closest('.day').getAttribute('data-day');
+                    const timeSlot = parentTimeSlot.getAttribute('data-time-slot');
+                    const className = draggingElement.getAttribute('data-class');
+
+                    // Remove from schedule
+                    fetch('/remove_class', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ day: day, time_slot: timeSlot, class: className })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Append back to available classes
+                            availableClassesContainer.appendChild(draggingElement);
+                            console.log('Class removed successfully:', data.schedule);
+                        } else {
+                            console.error('Error removing class:', data.message);
+                        }
+                    })
+                    .catch((error) => {
+                        console.error('Error:', error);
+                    });
+                }
+            }
+        });
 
         // Search functionality
         const searchInput = document.getElementById('search');
