@@ -50,16 +50,19 @@ def get_schedules():
 @app.route('/schedule', methods=['POST'])
 def schedule():
     data = request.json
-    day = data.get('day')
-    time_slot_index = int(data.get('time_slot'))
-    class_name = data.get('class')
-    
-    if day in day_to_index and 0 <= time_slot_index < NUM_TIME_SLOTS:
-        day_index = day_to_index[day]
-        schedules_3d[day_index][time_slot_index].append(class_name)
+    new_schedule = data.get('schedule')
+
+    if new_schedule and len(new_schedule) == NUM_DAYS and all(len(day) == NUM_TIME_SLOTS for day in new_schedule):
+        for day_index, day in enumerate(new_schedule):
+            for time_slot_index, class_names in enumerate(day):
+                if class_names:  # If there are classes to add
+                    for class_name in class_names:
+                        schedules_3d[day_index][time_slot_index].append(class_name)
+
         return jsonify(success=True, schedule=schedules_3d)
-    
+
     return jsonify(success=False, message="Invalid input")
+
 
 #removes class from 3d array if class is dragged into trash-bin on home page
 #Are we forcing users to always use trash bin to fix mistake or are we going to
@@ -81,9 +84,33 @@ def remove_class():
 
 
 #view 3d array using 127.0.0.1/view_schedules
-@app.route('/view_schedules', methods=['GET'])
+@app.route('/view_schedule', methods=['GET'])
 def view_schedules():
     return jsonify(schedules_3d)
+
+
+
+@app.route('/submit_schedule', methods=['POST'])
+def submit_schedule():
+    data = request.json
+    new_schedule = data.get('schedule')
+
+    if isinstance(new_schedule, list) and len(new_schedule) == NUM_DAYS:
+        for day_index, day_schedule in enumerate(new_schedule):
+            if isinstance(day_schedule, list) and len(day_schedule) == NUM_TIME_SLOTS:
+                schedules_3d[day_index] = day_schedule  # Update the corresponding day
+            else:
+                return jsonify(success=False, message="Invalid time slot data")
+
+        return jsonify(success=True, message="Schedule updated successfully!")
+
+    return jsonify(success=False, message="Invalid schedule format")
+
+@app.route('/display_schedules', methods=['GET'])
+def test():
+    return render_template('schedules.html', schedules=schedules_3d)
+
+
 
 
 if __name__ == '__main__':
