@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Class Schedule{% endblock %}
+
+{% block content %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedule View</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #000;
+            padding: 8px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Weekly Schedule</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Day</th>
+                <th>Time Slot</th>
+                <th>Classes</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% set days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'] %}
+            {% set time_slots = {
+                "Monday": ["8:00-9:25 am MW", "8:00-9:25 am MF", "8:30-9:25 am M-F", "8:30-9:25 am MWF", "9:35-10:30 am MWF", "10:40-11:35 am MWF", "11:45-12:40 pm MWF", "1:55-2:50 pm M-F", "1:55-2:50 pm MWF", "1:55-2:50 pm MWF", "3:00-3:55 pm MWF", "3:00-5:55 pm M-LAB", "4:05-5:00 pm MWF", "4:05-5:30 pm MW", "5:40-7:05 pm MW", "7:15-8:40 pm MW", "7:15-10:10 pm M-LAB", "8:50-10:15 pm MW"],
+                "Tuesday": ["8:30-9:25 am M-F", "8:30-9:55 am TR", "8:30-11:25 am T", "8:30-11:25 am T-LAB", "10:05-11:30 am TR", "1:30-2:55 pm TR", "1:30-4:25 pm T", "1:30-4:25 pm T-LAB", "1:55-2:50 pm M-F", "3:05-4:30 pm TR", "5:00-6:25 pm TR", "7:15-10:15 pm T"],
+                "Wednesday": ["8:00-9:25 am MW", "8:30-9:25 am M-F", "8:30-9:25 am MWF", "9:35-10:30 am MWF", "10:40-11:35 am MWF", "11:45-12:40 pm MWF", "1:55-2:50 pm M-F", "1:55-2:50 pm MWF", "1:55-4:50 pm W-LAB", "3:00-3:55 pm MWF", "3:00-5:55 pm W-LAB", "4:05-5:00 pm MWF", "4:05-5:30 pm MW", "5:40-7:05 pm MW", "7:15-8:40 pm MW", "7:15-10:10 pm W-LAB", "7:15-10:15 pm W", "8:50-10:15 pm MW"],
+                "Thursday": ["8:30-9:25 am M-F", "8:30-9:55 am TR", "8:30-11:25 am R", "8:30-11:25 am R-LAB", "10:05-11:30 am TR", "1:30-2:55 pm TR", "1:30-4:25 pm R", "1:30-4:25 pm R-LAB", "1:55-2:50 pm M-F", "3:05-4:30 pm TR", "5:00-6:25 pm TR", "7:15-10:10 pm R-LAB", "7:15-10:15 pm R"],
+                "Friday": ["8:00-9:25 am MF", "8:30-9:25 am M-F", "8:30-9:25 am MWF", "9:35-10:30 am MWF", "10:40-11:35 am MWF", "11:45-12:40 pm MWF", "1:55-2:50 pm M-F", "1:55-2:50 pm MWF", "1:55-2:50 pm MWF", "3:00-3:55 pm MWF", "3:00-5:55 pm F-LAB", "4:05-5:00 pm MWF", "4:05-5:30 pm MF", "7:15-10:10 pm F-LAB"]
+            } %}
+            {% for day_index in range(days|length) %}
+                {% for time_slot_index in range(time_slots[days[day_index]]|length) %}
+                    <tr>
+                        <td>{{ days[day_index] }}</td>
+                        <td>{{ time_slots[days[day_index]][time_slot_index] }}</td>
+                        <td>{{ schedules[day_index][time_slot_index] | join(', ') }}</td>
+                    </tr>
+                {% endfor %}
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
+{% endblock %}
