@@ -26,6 +26,7 @@ day_to_index = {
     "Friday": 4
 }
 
+
 # Sets home.html to / (root/start page)
 @app.route('/')
 def index():
