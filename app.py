@@ -44,6 +44,8 @@ def schedule():
     dayBlocks = data.get('set') #grabs dayPairs ex. MW
     timeBlock = data.get('time') #gets the time block ex. 10:05-11:30
 
+    print(dayBlocks)
+
     if new_schedule and len(new_schedule) == NUM_DAYS and all(len(day) == NUM_TIME_SLOTS for day in new_schedule):
         for day_index, day in enumerate(new_schedule):
             for time_slot_index, class_names in enumerate(day):
@@ -53,9 +55,6 @@ def schedule():
                         schedules_3d[day_index][time_slot_index].append(class_name)
 
                         if dayBlocks == 'MW':
-
-
-
                             # Copy to Monday and Wednesday
                             for target_day in [0, 2]:  # Monday and Wednesday
                                 # for x in schedules_3d[target_day][time_slot_index]:
@@ -96,13 +95,13 @@ def remove_class():
     time_slot_index = int(data.get('time_slot'))
     class_name = data.get('class')
 
-    if day in day_to_index and 0 <= time_slot_index < NUM_TIME_SLOTS:
-        day_index = day_to_index[day]
-        if class_name in schedules_3d[day_index][time_slot_index]:
-            schedules_3d[day_index][time_slot_index].remove(class_name)
-            return jsonify(success=True, schedule=schedules_3d)
+    # if day in day_to_index and 0 <= time_slot_index < NUM_TIME_SLOTS:
+    #     day_index = day_to_index[day]
+    #     if class_name in schedules_3d[day_index][time_slot_index]:
+    #         schedules_3d[day_index][time_slot_index].remove(class_name)
+    return jsonify(success=True, schedule=schedules_3d)
 
-    return jsonify(success=False, message="Class not found or invalid input")
+    # return jsonify(success=False, message="Class not found or invalid input")
 
 # View 3D array using 127.0.0.1/view_schedules
 @app.route('/view_schedule', methods=['GET'])
