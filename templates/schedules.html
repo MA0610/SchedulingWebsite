@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Class Schedules</title>
+
+    <style>
+        body {
+            margin: 20px;
+        }
+        .schedule-table {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center">Class Schedules</h1>
+        <div class="schedule-table">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Day</th>
+                        <th>Time</th>
+                        <th>Classes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for day, time_slots in schedules.items() %}
+                        {% for time_slot in time_slots %}
+                            <tr>
+                                <td>{{ day }}</td>
+                                <td>{{ time_slot.time }}</td>
+                                <td>
+                                    {% if time_slot.classes %}
+                                        {{ time_slot.classes | join(', ') }}
+                                    {% else %}
+                                        No classes scheduled
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</body>
+</html>
+{% endblock %}

@@ -1,0 +1,196 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body, html {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;  /* Prevent unwanted scrolling */
+    margin: 0;
+    padding: 0;
+}
+/* Main container to manage the layout */
+.main-container {
+    display: flex;
+    height: 100vh; /* Full-height layout */
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+/* Left panel: Add Course */
+.addCourse {
+    flex: 2; /* Take up minimal space */
+    padding: 20px;
+    border-right: 2px solid #ccc;
+    background-color: #f4f4f4;
+    min-width: 200px; /* Optional: Set a minimum width */
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Right content (schedule + toolkit) */
+.content {
+    flex: 6; /* Main content takes more space */
+    display: flex;
+    width: 100%; /* Ensure full width is used */
+    overflow: auto; /* Handle overflow gracefully */
+    padding: 20px;
+
+}
+.schedule {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr); /* Equal-width columns */
+    grid-gap: 10px;
+    width: 100%; /* Ensure it stretches */
+    
+}
+.day {
+max-height: 100%; /* Adjust as needed */
+overflow-y: auto; /* Vertical scrolling within each day */
+}
+/* Optional styling to visually show that the day is scrollable */
+.day::-webkit-scrollbar {
+    width: 6px;
+}
+.day::-webkit-scrollbar-thumb {
+    background-color: #cccccc;
+    border-radius: 4px;
+}
+
+.class {
+    background-color: #76c7c0;
+    padding: 10px;
+    margin: 10px 0;
+    color: white;
+    cursor: move;
+}
+.class.dragging {
+    opacity: 0.5;
+}
+.droppable {
+    min-height: 150px;
+    border: 2px dashed #ccc;
+}
+.search-container {
+    margin-bottom: 20px;
+}
+.scrollable-classes {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    padding: 10px;
+    background-color: #f9f9f9;
+}
+
+/* Trash bin styling */
+.trash-bin {
+    display: flex;
+    flex-direction: column;
+    border: 2px dashed red;
+    padding: 20px;
+    text-align: center;
+    align-items: center;
+    color: red;
+    margin-top: 20px;
+    margin-bottom: 15px;
+    cursor: pointer;
+    min-height: 70px;
+    transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth transition */
+}
+/* Hover effect */
+.trash-bin:hover {
+    background-color: rgba(255, 0, 0, 0.1); /* Light red background on hover */
+    border-color: darkred;
+}
+/* Highlight trash bin when dragging */
+.trash-bin.dragging-over {
+    background-color: rgba(255, 0, 0, 0.2); /* Darker red when dragging over */
+    transform: scale(1.05); /* Slightly larger */
+}
+/* Drop animation */
+.trash-bin.drop-animation {
+    animation: flash 0.3s ease-in-out;
+}
+/* Flash animation keyframes */
+@keyframes flash {
+    0% { background-color: rgba(255, 0, 0, 0.2); }
+    100% { background-color: transparent; }
+}
+
+.notification {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 10px 20px;
+    background-color: #ff4444;
+    color: white;
+    border-radius: 5px;
+    z-index: 1000;
+    text-align: center;
+}
+.container {
+    width: 100vw;  /* Full width of the viewport */
+    height: 100vh; /* Full height of the viewport */
+    padding: 0;    /* Remove padding */
+    margin: 0;     /* Remove margin */
+    overflow: hidden; /* Prevent scrolling */
+    display: flex;
+    flex-direction: column;
+}
+.time-selector {
+    padding-bottom: 1em;
+}
+.day-button {
+    background-color: rgb(255, 255, 255);  /* Initial color */
+    color: #76c7c0;
+    border: black;
+    padding: 5px 10px;  /* Adjust padding */
+    cursor: pointer;
+    font-size: 14px;  /* Slightly smaller font */
+    border-radius: 50%;  /* Keeps it circular */
+    transition: background-color 0.3s ease;  /* Smooth transition */
+    width: 50px;  /* Smaller width */
+    height: 50px;  /* Smaller height */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);  /* Small shadow */
+}
+.day-button.selected {
+    background-color: #76c7c0;
+    color: white;
+}
+.day-button:hover {
+    background-color: #5aa9a3;
+}
+#add-course-btn {
+    background-color: #76c7c0;  /* Initial color */
+    color: white;
+    border: none;
+    padding: 3px;
+    cursor: pointer;
+    font-size: 16px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;  /* Smooth transition */
+}
+#add-course-btn:hover {
+    background-color: #5aa9a3;  /* Color when hovered */
+}
+#submit-schedule-btn {
+    background-color: #76c7c0;  /* Initial color */
+    color: white;
+    border: none;
+    padding: 3px 10px;
+    cursor: pointer;
+    font-size: 16px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;  /* Smooth transition */
+    transform: translateX(100px); 
+}
+#submit-schedule-btn:hover {
+    background-color: #5aa9a3;
+}

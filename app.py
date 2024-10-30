@@ -1,0 +1,225 @@
+from flask import Flask, request, jsonify, render_template, Blueprint  
+from typing import Optional, List
+from models import db, Day, TimeSlot, ScheduledClass
+
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///schedules.db'  
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db.init_app(app)
+
+with app.app_context():
+    db.create_all()  # Creates the database tables
+
+views = Blueprint('views', __name__)
+
+# Constants for the array scheduling system
+NUM_DAYS = 5  # Monday to Friday
+NUM_TIME_SLOTS = 20  # Number of specified time slots
+
+# Initialize a 3D list to hold schedules
+schedules_3d = [[[] for _ in range(NUM_TIME_SLOTS)] for _ in range(NUM_DAYS)]
+
+# Mapping from day names to indices
+day_to_index = {
+    "Monday": 0,
+    "Tuesday": 1,
+    "Wednesday": 2,
+    "Thursday": 3,
+    "Friday": 4
+}
+
+# Sets home.html to / (root/start page)
+@app.route('/')
+def index():
+    return render_template('home.html')
+
+# Grabs data from dropzones in home.html
+@app.route('/schedules', methods=['GET'])
+def get_schedules():
+    return jsonify(schedules_3d)
+
+# Posts data to database
+@app.route('/schedule', methods=['POST'])
+def schedule():
+    data = request.json
+    new_schedule = data.get('schedule')
+    dayBlocks = data.get('set')
+    timeBlock = data.get('time')
+
+    if new_schedule and len(new_schedule) == NUM_DAYS and all(len(day) == NUM_TIME_SLOTS for day in new_schedule):
+        for day_index, day in enumerate(new_schedule):
+            for time_slot_index, class_names in enumerate(day):
+                if class_names:  # If there are classes to add
+                    # Get or create the Day object
+                    day_name = list(day_to_index.keys())[day_index]
+                    day_obj = Day.query.filter_by(name=day_name).first() or Day(name=day_name)
+                    db.session.add(day_obj)
+                    db.session.commit()
+
+                    # Use the provided timeBlock instead of calculating it
+                    time_slot_obj = TimeSlot.query.filter_by(day_id=day_obj.id, time=timeBlock).first()
+                    if not time_slot_obj:
+                        time_slot_obj = TimeSlot(day_id=day_obj.id, time=timeBlock)
+                        db.session.add(time_slot_obj)
+                        db.session.commit()
+
+                    for class_name in class_names:
+                        # Create the ScheduledClass object
+                        class_obj = ScheduledClass.query.filter_by(name=class_name, time_slot_id=time_slot_obj.id).first()
+                        if not class_obj:
+                            class_obj = ScheduledClass(name=class_name, time_slot_id=time_slot_obj.id)
+                            db.session.add(class_obj)
+
+                    db.session.commit()
+
+        # Copy classes to paired days based on dayBlocks
+        copy_classes(dayBlocks)
+
+        return jsonify(success=True, message="Schedule added successfully")
+
+    return jsonify(success=False, message="Invalid input")
+
+def copy_classes(dayBlocks):
+    day_pairs = {
+        'MW': ['Monday', 'Wednesday'],
+        'MF': ['Monday', 'Friday'],
+        'TR': ['Tuesday', 'Thursday'],
+        'MWF': ['Monday', 'Wednesday', 'Friday'],
+        'M-F': ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+    }
+
+    for pair in day_pairs:
+        if pair not in dayBlocks:
+            continue
+
+        days = day_pairs[pair]
+
+        for source_day in days:
+            source_day_obj = Day.query.filter_by(name=source_day).first()
+            if not source_day_obj:
+                continue  # Skip if source day doesn't exist
+
+            # Get time slots for the source day
+            time_slots = TimeSlot.query.filter_by(day_id=source_day_obj.id).all()
+            for time_slot in time_slots:
+                class_names = [scheduled_class.name for scheduled_class in ScheduledClass.query.filter_by(time_slot_id=time_slot.id).all()]
+                for target_day in days:
+                    if target_day == source_day:
+                        continue  # Skip copying to the same day
+
+                    target_day_obj = Day.query.filter_by(name=target_day).first()
+                    if not target_day_obj:
+                        target_day_obj = Day(name=target_day)
+                        db.session.add(target_day_obj)
+                        db.session.commit()  # Ensure target Day is saved
+
+                    target_time_slot = TimeSlot.query.filter_by(day_id=target_day_obj.id, time=time_slot.time).first()
+                    if not target_time_slot:
+                        target_time_slot = TimeSlot(day_id=target_day_obj.id, time=time_slot.time)
+                        db.session.add(target_time_slot)
+
+                    for class_name in class_names:
+                        if not ScheduledClass.query.filter_by(name=class_name, time_slot_id=target_time_slot.id).first():
+                            new_class = ScheduledClass(name=class_name, time_slot_id=target_time_slot.id)
+                            db.session.add(new_class)
+
+    db.session.commit()  # Commit changes after copying classes
+
+@app.route('/clear_database', methods=['POST']) #TEMP
+def clear_database():
+    try:
+        # Clear all scheduled classes
+        ScheduledClass.query.delete()
+        # Clear all time slots
+        TimeSlot.query.delete()
+        # Clear all days
+        Day.query.delete()
+
+        db.session.commit()  # Commit the changes to the database
+
+        return jsonify(success=True, message="Database cleared successfully.")
+    except Exception as e:
+        db.session.rollback()  # Rollback in case of an error
+        return jsonify(success=False, message="An error occurred while clearing the database.", error=str(e))
+
+@app.route('/test', methods=['GET'])
+def test():
+    schedules = {}
+    days = Day.query.all()
+
+    for day in days:
+        day_data = {
+            "name": day.name,
+            "time_slots": []
+        }
+        time_slots = TimeSlot.query.filter_by(day_id=day.id).all()
+
+        for time_slot in time_slots:
+            class_names = [scheduled_class.name for scheduled_class in ScheduledClass.query.filter_by(time_slot_id=time_slot.id).all()]
+            day_data["time_slots"].append({
+                "time": time_slot.time,
+                "classes": class_names
+            })
+
+        schedules[day.name] = day_data
+
+    return jsonify(schedules)
+
+# Removes class from 3D array if class is dragged into trash-bin on home page
+@app.route('/remove_class', methods=['POST'])
+def remove_class():
+    data = request.json
+    day = data.get('day')
+    time_slot_index = int(data.get('time_slot'))
+    class_name = data.get('class')
+
+    if day in day_to_index and 0 <= time_slot_index < NUM_TIME_SLOTS:
+        day_index = day_to_index[day]
+        if class_name in schedules_3d[day_index][time_slot_index]:
+            schedules_3d[day_index][time_slot_index].remove(class_name)
+            return jsonify(success=True, schedule=schedules_3d)
+
+    return jsonify(success=False, message="Class not found or invalid input")
+
+# @app.route('/display_schedules', methods=['GET'])
+# def display_schedules():
+#     return render_template('schedules.html', schedules=schedules_3d)
+# @app.route('/display_schedules', methods=['GET'])
+# def display_schedules():
+#     schedules = {}
+#     days = Day.query.all()
+
+#     for day in days:
+#         day_data = []
+#         time_slots = TimeSlot.query.filter_by(day_id=day.id).all()
+        
+#         for time_slot in time_slots:
+#             class_names = [scheduled_class.name for scheduled_class in ScheduledClass.query.filter_by(time_slot_id=time_slot.id).all()]
+#             day_data.append(class_names)
+
+#         schedules[day.name] = day_data
+
+#     return render_template('schedules.html', schedules=schedules)
+@app.route('/display_schedules', methods=['GET'])
+def display_schedules():
+    schedules = {}
+    days = Day.query.all()
+
+    for day in days:
+        day_data = []
+        time_slots = TimeSlot.query.filter_by(day_id=day.id).all()
+        
+        for time_slot in time_slots:
+            class_names = [scheduled_class.name for scheduled_class in ScheduledClass.query.filter_by(time_slot_id=time_slot.id).all()]
+            day_data.append({
+                "time": time_slot.time,
+                "classes": class_names
+            })
+
+        schedules[day.name] = day_data
+
+    return render_template('schedules.html', schedules=schedules)
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
