@@ -64,6 +64,9 @@
                 Drop here to remove from schedule
             </div>
             <button id="submit-schedule-btn">Submit Schedule</button>
+
+            <button type="button" id="clearDatabaseButton">Clear Database</button>
+
         </div>
 
     
@@ -266,48 +269,7 @@
                 e.preventDefault();
                 const draggingElement = document.querySelector('.dragging');
                 if (draggingElement) {
-                    //following code could be helpful when detecting intradepartmental class collisions
-                    // const day = timeSlot.closest('.day').getAttribute('data-day');
-                    // const timeSlotIndex = timeSlot.getAttribute('data-time-slot');
-
-                    // // Check with the backend if the time slot is already occupied
-                    // fetch(`/check_time_slot?day=${day}&time_slot=${timeSlotIndex}`)
-                    //     .then(response => response.json())
-                    //     .then(data => {
-                    //         if (data.occupied) {
-                    //             // Notify user that the slot is already taken
-                    //             showNotification("This time slot is already occupied by another class.");
-                    //         } else {
-                    //             // Proceed with the drop and update the backend
-                    //             fetch('/schedule', {
-                    //                 method: 'POST',
-                    //                 headers: {
-                    //                     'Content-Type': 'application/json'
-                    //                 },
-                    //                 body: JSON.stringify({
-                    //                     day: day,
-                    //                     time_slot: timeSlotIndex,
-                    //                     class: draggingElement.getAttribute('data-class')
-                    //                 })
-                    //             })
-                    //             .then(response => response.json())
-                    //             .then(data => {
-                    //                 if (data.success) {
-                    //                     // Successfully scheduled, append the class to the time slot
-                    //                     timeSlot.appendChild(draggingElement);
-                    //                 } else {
-                    //                     // Error occurred, show notification
-                    //                     showNotification(data.message);
-                    //                 }
-                    //             })
-                    //             .catch((error) => {
-                    //                 console.error('Error:', error);
-                    //             });
-                    //         }
-                    //     })
-                    //     .catch((error) => {
-                    //         console.error('Error:', error);
-                    //     });
+                   
                     timeSlot.appendChild(draggingElement);
                 }
             });
@@ -340,6 +302,40 @@
             }
             trashBin.classList.remove('dragging-over'); // Ensure highlight is removed
         });
+
+        
+const clearDatabaseButton = document.getElementById('clearDatabaseButton');
+
+clearDatabaseButton.addEventListener('click', () => {
+    if (confirm('Are you sure you want to clear the database?')) {
+        fetch('/clear_database', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Database cleared successfully!');
+            } else {
+                alert('Error clearing database: ' + data.message);
+            }
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+            alert('An error occurred while trying to clear the database.');
+        });
+    }
+});
+
+
+
+
+
+
+
+
 
         // Search functionality
         const searchInput = document.getElementById('search');
