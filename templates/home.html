@@ -194,7 +194,12 @@
                 <label for="new-course">Name:</label>
                 <input type="text" id="new-course" placeholder="Enter valid course">
             </div>
-            
+
+            <div class="addProfessor">
+                <label for="professor-name">Name:</label>
+                <input type="text" id="professor-name" placeholder="Enter professor name">
+            </div>
+
             <div class="day-selector">
                 <label>Select Days: </label>
                 <button class="day-button" data-days="MWF">MWF</button>
@@ -503,20 +508,14 @@ clearDatabaseButton.addEventListener('click', () => {
 //////////
 
        // Submit schedule functionality
-    submitButton.addEventListener('click', () => {
+   
+submitButton.addEventListener('click', () => {
     const newScheduleData = Array.from({ length: 5 }, () => Array(20).fill(null)); // 5 days, 20 time slots
     const days = document.querySelectorAll('.day');
-//
-const daySets = []; // Array to hold day sets
-
-
-//
-
 
     days.forEach(day => {
         const dayIndex = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].indexOf(day.getAttribute('data-day'));
         const timeSlots = day.querySelectorAll('.time-slot');
-        const time = day.getAttribute('data-day');
 
         timeSlots.forEach((slot, index) => {
             const classElement = slot.querySelector('.class');
@@ -526,60 +525,43 @@ const daySets = []; // Array to hold day sets
                     newScheduleData[dayIndex][index] = [];
                 }
                 newScheduleData[dayIndex][index].push(classElement.getAttribute('data-class'));
-            
-               // Collect the day-set value
-               const daySetValue = slot.getAttribute('day-set');
-               const timeValue = slot.getAttribute('data-days')
-                // if (daySets.indexOf(daySetValue) === -1) {
-                //     daySets.push(daySetValue); // Only add if it's not already included
-                // }
-                
-    fetch('/schedule', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ schedule: newScheduleData, set: daySetValue, time: timeValue })
-        
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('Schedule submitted successfully!');
-        } else {
-            alert('Error submitting schedule: ' + data.message);
-        }
-    })
-    .catch((error) => {
-        console.error('Error:', error);
-    });
+
+                // Collect the day-set value and time value
+                const daySetValue = slot.getAttribute('day-set');
+                const timeValue = slot.getAttribute('data-days');
+
+                // Get the professor's name from the text field
+                const professorName = document.getElementById('professor-name').value;
+
+                // Send data including the professor's name
+                fetch('/schedule', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        schedule: newScheduleData, 
+                        set: daySetValue, 
+                        time: timeValue, 
+                        professor: professorName 
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Schedule submitted successfully!');
+                    } else {
+                        alert('Error submitting schedule: ' + data.message);
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                });
             }
-
-            
         });
-        
     });
-
-    // fetch('/schedule', {
-    //     method: 'POST',
-    //     headers: {
-    //         'Content-Type': 'application/json'
-    //     },
-    //     body: JSON.stringify({ schedule: newScheduleData, daySets })
-        
-    // })
-    // .then(response => response.json())
-    // .then(data => {
-    //     if (data.success) {
-    //         alert('Schedule submitted successfully!');
-    //     } else {
-    //         alert('Error submitting schedule: ' + data.message);
-    //     }
-    // })
-    // .catch((error) => {
-    //     console.error('Error:', error);
-    // });
 });
+
 
     </script>
 </body>
