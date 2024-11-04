@@ -30,20 +30,30 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for day, time_slots in schedules.items() %}
-                        {% for time_slot in time_slots %}
+                    {% for day in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"] %}
+                        {% if schedules[day] %}
+                            {% for time_slot in schedules[day].time_slots %}
+                                <tr>
+                                    <td>{{ day }}</td>
+                                    <td>{{ time_slot.time }}</td>
+                                    <td>
+                                        {% if time_slot.classes %}
+                                            {% for class_info in time_slot.classes %}
+                                                {{ class_info.class_name }} ({{ class_info.professor_name }})<br>
+                                                <small>Day Blocks: {{ class_info.day_blocks }}</small><br>
+                                            {% endfor %}
+                                        {% else %}
+                                            No classes scheduled
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
                             <tr>
                                 <td>{{ day }}</td>
-                                <td>{{ time_slot.time }}</td>
-                                <td>
-                                    {% if time_slot.classes %}
-                                        {{ time_slot.classes | join(', ') }}
-                                    {% else %}
-                                        No classes scheduled
-                                    {% endif %}
-                                </td>
+                                <td colspan="2">No time slots available</td>
                             </tr>
-                        {% endfor %}
+                        {% endif %}
                     {% endfor %}
                 </tbody>
             </table>
