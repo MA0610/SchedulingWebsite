@@ -16,5 +16,6 @@ class TimeSlot(db.Model):
 class ScheduledClass(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    professor_name = db.Column(db.String(100), nullable=False)  # New field for professor's name
+    professor_name = db.Column(db.String(100), nullable=False)
     time_slot_id = db.Column(db.Integer, db.ForeignKey('time_slot.id'), nullable=False)
+    day_blocks = db.Column(db.String(100), nullable=True)
