@@ -31,10 +31,8 @@
             </div> -->
 
             <div class="time-selector">
-                <!-- <label>Start Time: </label>
-                <input type="text" id="start-time" placeholder="ex. 0:00">
-                <label>End Time: </label>
-                <input type="text" id="end-time" placeholder="ex. 0:00"> -->
+                <label>Class Section: </label>
+                <input type="text" id="class_section" placeholder="ex. 0">
                 <button id="add-course-btn">Add Course</button>
             </div>
             <h2>Available Classes</h2>
@@ -163,6 +161,7 @@
 document.getElementById('add-course-btn').addEventListener('click', () => {
         const courseName = document.getElementById('new-course').value;
         const professorName = document.getElementById('professor-name').value;
+        const sectionNumber = document.getElementById('class_section').value;
         
 
         const newClass = document.createElement('div');
@@ -170,9 +169,10 @@ document.getElementById('add-course-btn').addEventListener('click', () => {
         newClass.setAttribute('draggable', 'true');
         newClass.setAttribute('data-class', courseName);
         newClass.setAttribute('professor-name',professorName);
+        newClass.setAttribute('class_section', sectionNumber);
 
 
-        newClass.textContent = `${courseName} (${professorName})`;
+        newClass.textContent = `${courseName} ${sectionNumber} (${professorName})`;
         
         newClass.addEventListener('dragstart', () => newClass.classList.add('dragging'));
         newClass.addEventListener('dragend', () => newClass.classList.remove('dragging'));
@@ -182,6 +182,7 @@ document.getElementById('add-course-btn').addEventListener('click', () => {
         // Clear the form inputs
         document.getElementById('new-course').value = '';
         document.getElementById('professor-name').value = '';
+        document.getElementById('class_section').value = '';
 
     });
 
@@ -300,6 +301,7 @@ submitButton.addEventListener('click', () => {
                 const timeValue = slot.getAttribute('data-days');
 
                 const profName = classElement.getAttribute('professor-name'); 
+                const sectionNumber = classElement.getAttribute('class_section');
 
                 // Send data including the professor's name
                 fetch('/schedule', {
@@ -311,7 +313,8 @@ submitButton.addEventListener('click', () => {
                         schedule: newScheduleData, 
                         set: daySetValue, 
                         time: timeValue, 
-                        professor: profName
+                        professor: profName,
+                        section: sectionNumber
                     })
                 })
                 .then(response => response.json())
