@@ -264,6 +264,36 @@ def display_schedules():
 
     return render_template('schedules.html', schedules=schedules)
 
+"""Everything below this line is meant to detect potential class conflicts"""
+#Storing in globally held dictionary for now
+class_conflicts = {}
+
+def record_conflict(class_name1:str, class_name2: str):
+    #Records conflicts between two classes in dictionary
+    if class_name1 not in class_conflicts:
+        class_conflicts[class_naame_1] = set()
+    if class_name2 not in class_conflicts:
+        class_conflicts[class_name2] = set()
+    
+    class_conflicts[class_name1].add(class_name2)
+    class_conflicts[class_name2].add(class_name1)
+
+def find_conflicts(class_name:str) -> Optional[List[str]]:
+    #Finds all conflicts for a given class when passed
+    if class_name in class_conflicts:
+        return list(class_conflicts.get(class_name, []))
+    else:
+        return None
+
+def find_all_conflicts(classList:List[str]) -> List[str]:
+    conflicts = set()
+    for class_name in classList:
+        conflicts = find_conflicts(class_name)
+        for conflict in conflicts:
+            potential_conflicts.add(f"{class_name} conflicts with {conflict}")
+    return list(potential_conflicts)
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
