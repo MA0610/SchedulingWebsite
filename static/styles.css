@@ -5,9 +5,11 @@
 }
 
 body, html {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
     height: 100%;
     width: 100%;
-    overflow: hidden;  /* Prevent unwanted scrolling */
+    overflow: hidden;
     margin: 0;
     padding: 0;
 }
@@ -16,35 +18,31 @@ body, html {
     display: flex;
     height: 100vh; /* Full-height layout */
     width: 100%;
-    margin: 0;
-    padding: 0;
 }
 
 /* Left panel: Add Course */
 .addCourse {
-    flex: 2; /* Take up minimal space */
+    flex: 1; /* Adjust to control width of this section */
     padding: 20px;
-    border-right: 2px solid #ccc;
     background-color: #f4f4f4;
-    min-width: 200px; /* Optional: Set a minimum width */
+    border-right: 2px solid #ccc;
+    min-width: 250px; /* Ensure a minimum width */
     box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
 }
-
 /* Right content (schedule + toolkit) */
 .content {
-    flex: 6; /* Main content takes more space */
+    flex: 3; /* Adjust to control width of this section */
     display: flex;
-    width: 100%; /* Ensure full width is used */
-    overflow: auto; /* Handle overflow gracefully */
     padding: 20px;
-
+    overflow: auto;
 }
 .schedule {
+    width: 100%; /* Full width */
     display: grid;
-    grid-template-columns: repeat(5, 1fr); /* Equal-width columns */
+    grid-template-columns: repeat(5, 1fr); /* Columns for each day */
     grid-gap: 10px;
-    width: 100%; /* Ensure it stretches */
-    
+    overflow-y: scroll;
+    max-height: 500px;
 }
 .day {
 max-height: 100%; /* Adjust as needed */
@@ -134,9 +132,10 @@ overflow-y: auto; /* Vertical scrolling within each day */
 .container {
     width: 100vw;  /* Full width of the viewport */
     height: 100vh; /* Full height of the viewport */
-    padding: 0;    /* Remove padding */
-    margin: 0;     /* Remove margin */
-    overflow: hidden; /* Prevent scrolling */
+    padding: 20px; /* Add padding for spacing */
+    margin: 20px auto; /* Center align with some margin */
+    max-width: 1200px; /* Limit the maximum width for better readability */
+    overflow: hidden; /* Prevent unwanted scrolling */
     display: flex;
     flex-direction: column;
 }
@@ -167,30 +166,29 @@ overflow-y: auto; /* Vertical scrolling within each day */
 .day-button:hover {
     background-color: #5aa9a3;
 }
-#add-course-btn {
-    background-color: #76c7c0;  /* Initial color */
-    color: white;
+button {
+    background-color: #76c7c0;
     border: none;
-    padding: 3px;
-    cursor: pointer;
-    font-size: 16px;
-    border-radius: 5px;
-    transition: background-color 0.3s ease;  /* Smooth transition */
-}
-#add-course-btn:hover {
-    background-color: #5aa9a3;  /* Color when hovered */
-}
-#submit-schedule-btn {
-    background-color: #76c7c0;  /* Initial color */
     color: white;
-    border: none;
-    padding: 3px 10px;
+    padding: 5px 10px;
+    border-radius: 4px;
     cursor: pointer;
-    font-size: 16px;
-    border-radius: 5px;
-    transition: background-color 0.3s ease;  /* Smooth transition */
-    transform: translateX(100px); 
+    transition: background-color 0.3s;
 }
-#submit-schedule-btn:hover {
+
+button:hover {
     background-color: #5aa9a3;
+}
+/* Cant be tested until Ui format changes */
+.table-hover tbody tr:hover {
+    background-color: #f0f8ff; /* Light blue for hover */
+}
+@media (max-width: 768px) {
+    .schedule {
+        grid-template-columns: 1fr; /* Single column layout for smaller screens */
+    }
+
+    .addCourse {
+        min-width: 100%; /* Ensure the side panel stacks vertically */
+    }
 }
