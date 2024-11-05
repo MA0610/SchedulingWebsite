@@ -286,12 +286,13 @@ def find_conflicts(class_name:str) -> Optional[List[str]]:
         return None
 
 def find_all_conflicts(classList:List[str]) -> List[str]:
+    #Takes list of classes as a parameter and returns a list of all conflicts
     conflicts = set()
     for class_name in classList:
         conflicts = find_conflicts(class_name)
         for conflict in conflicts:
-            potential_conflicts.add(f"{class_name} conflicts with {conflict}")
-    return list(potential_conflicts)
+            conflicts.add(f"{class_name} conflicts with {conflict}")
+    return list(conflicts)
 
 
 
