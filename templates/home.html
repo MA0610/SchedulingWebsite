@@ -23,18 +23,18 @@
                 <input type="text" id="professor-name" placeholder="Enter professor name">
             </div>
 
-            <div class="day-selector">
+            <!-- <div class="day-selector">
                 <label>Select Days: </label>
                 <button class="day-button" data-days="MWF">MWF</button>
                 <button class="day-button" data-days="TuTh">TuTh</button>
                 <button class="day-button" data-days="MW">MW</button>
-            </div>
+            </div> -->
 
             <div class="time-selector">
-                <label>Start Time: </label>
+                <!-- <label>Start Time: </label>
                 <input type="text" id="start-time" placeholder="ex. 0:00">
                 <label>End Time: </label>
-                <input type="text" id="end-time" placeholder="ex. 0:00">
+                <input type="text" id="end-time" placeholder="ex. 0:00"> -->
                 <button id="add-course-btn">Add Course</button>
             </div>
             <h2>Available Classes</h2>
@@ -158,28 +158,35 @@
     <script>
 
 
+    const name = '';
+
+
 document.getElementById('add-course-btn').addEventListener('click', () => {
         const courseName = document.getElementById('new-course').value;
-        const startTime = document.getElementById('start-time').value;
-        const endTime = document.getElementById('end-time').value;
-        const selectedDays = Array.from(document.querySelectorAll('.day-button.selected'))
-                                .map(button => button.dataset.days)
-                                .join(', ');
+        // const startTime = document.getElementById('start-time').value;
+        // const endTime = document.getElementById('end-time').value;
+        // const selectedDays = Array.from(document.querySelectorAll('.day-button.selected'))
+        //                         .map(button => button.dataset.days)
+        //                         .join(', ');
 
-        if (!courseName || !startTime || !endTime || !selectedDays) {
-            alert('Please fill in all fields.');
-            return;
-        }
+        // if (!courseName || !startTime || !endTime || !selectedDays) {
+        //     alert('Please fill in all fields.');
+        //     return;
+        // }
+        const professorName = document.getElementById('professor-name').value;
+        
 
         const newClass = document.createElement('div');
         newClass.classList.add('class');
         newClass.setAttribute('draggable', 'true');
         newClass.setAttribute('data-class', courseName);
-        newClass.setAttribute('data-days', selectedDays);
-        newClass.setAttribute('data-start-time', startTime);
-        newClass.setAttribute('data-end-time', endTime);
+        newClass.setAttribute('professor-name',professorName);
+        // newClass.setAttribute('data-days', selectedDays);
+        // newClass.setAttribute('data-start-time', startTime);
+        // newClass.setAttribute('data-end-time', endTime);
 
-        newClass.textContent = `${courseName} (${selectedDays} ${startTime} - ${endTime})`;
+
+        newClass.textContent = `${courseName} (${professorName})`;
         
         newClass.addEventListener('dragstart', () => newClass.classList.add('dragging'));
         newClass.addEventListener('dragend', () => newClass.classList.remove('dragging'));
@@ -188,9 +195,12 @@ document.getElementById('add-course-btn').addEventListener('click', () => {
 
         // Clear the form inputs
         document.getElementById('new-course').value = '';
-        document.getElementById('start-time').value = '';
-        document.getElementById('end-time').value = '';
-        document.querySelectorAll('.day-button').forEach(btn => btn.classList.remove('selected'));
+        document.getElementById('professor-name').value = '';
+
+
+        // document.getElementById('start-time').value = '';
+        // document.getElementById('end-time').value = '';
+        // document.querySelectorAll('.day-button').forEach(btn => btn.classList.remove('selected'));
     });
 
     // Add functionality to select day buttons
@@ -348,7 +358,9 @@ submitButton.addEventListener('click', () => {
                 const timeValue = slot.getAttribute('data-days');
 
                 // Get the professor's name from the text field
-                const professorName = document.getElementById('professor-name').value;
+                // const professorName = document.getElementById('professor-name').value;
+
+                const profName = classElement.getAttribute('professor-name'); 
 
                 // Send data including the professor's name
                 fetch('/schedule', {
@@ -360,7 +372,7 @@ submitButton.addEventListener('click', () => {
                         schedule: newScheduleData, 
                         set: daySetValue, 
                         time: timeValue, 
-                        professor: professorName 
+                        professor: profName
                     })
                 })
                 .then(response => response.json())
