@@ -158,21 +158,10 @@
     <script>
 
 
-    const name = '';
 
 
 document.getElementById('add-course-btn').addEventListener('click', () => {
         const courseName = document.getElementById('new-course').value;
-        // const startTime = document.getElementById('start-time').value;
-        // const endTime = document.getElementById('end-time').value;
-        // const selectedDays = Array.from(document.querySelectorAll('.day-button.selected'))
-        //                         .map(button => button.dataset.days)
-        //                         .join(', ');
-
-        // if (!courseName || !startTime || !endTime || !selectedDays) {
-        //     alert('Please fill in all fields.');
-        //     return;
-        // }
         const professorName = document.getElementById('professor-name').value;
         
 
@@ -181,9 +170,6 @@ document.getElementById('add-course-btn').addEventListener('click', () => {
         newClass.setAttribute('draggable', 'true');
         newClass.setAttribute('data-class', courseName);
         newClass.setAttribute('professor-name',professorName);
-        // newClass.setAttribute('data-days', selectedDays);
-        // newClass.setAttribute('data-start-time', startTime);
-        // newClass.setAttribute('data-end-time', endTime);
 
 
         newClass.textContent = `${courseName} (${professorName})`;
@@ -197,18 +183,9 @@ document.getElementById('add-course-btn').addEventListener('click', () => {
         document.getElementById('new-course').value = '';
         document.getElementById('professor-name').value = '';
 
-
-        // document.getElementById('start-time').value = '';
-        // document.getElementById('end-time').value = '';
-        // document.querySelectorAll('.day-button').forEach(btn => btn.classList.remove('selected'));
     });
 
-    // Add functionality to select day buttons
-    document.querySelectorAll('.day-button').forEach(button => {
-        button.addEventListener('click', () => {
-            button.classList.toggle('selected');
-        });
-    });
+
 
 
 
@@ -269,35 +246,9 @@ trashBin.addEventListener('drop', () => {
         const className = draggingElement.getAttribute('data-class');
         const day = draggingElement.closest('.day').getAttribute('data-day');
         const timeSlot = draggingElement.closest('.time-slot');
-
-        if (timeSlot) {
-            const timeSlotIndex = timeSlot.getAttribute('data-time-slot');
-
-            // Send request to remove class from the schedule
-            fetch('/remove_class', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ day: day, time_slot: timeSlotIndex, class: className })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Successfully removed, append back to available classes
-                    availableClassesContainer.appendChild(draggingElement);
-                    console.log('Class removed successfully:', data.schedule);
-                } else {
-                    console.error('Error removing class:', data.message);
-                }
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-            });
-        }
+        availableClassesContainer.appendChild(draggingElement);
     }
 });
-/////////////
 
 const clearDatabaseButton = document.getElementById('clearDatabaseButton');
 
@@ -325,15 +276,6 @@ clearDatabaseButton.addEventListener('click', () => {
 });
 
 
-
-
-
-
-
-
-
-//////////
-
        // Submit schedule functionality
    
 submitButton.addEventListener('click', () => {
@@ -356,9 +298,6 @@ submitButton.addEventListener('click', () => {
                 // Collect the day-set value and time value
                 const daySetValue = slot.getAttribute('day-set');
                 const timeValue = slot.getAttribute('data-days');
-
-                // Get the professor's name from the text field
-                // const professorName = document.getElementById('professor-name').value;
 
                 const profName = classElement.getAttribute('professor-name'); 
 
