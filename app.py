@@ -64,8 +64,14 @@ def schedule():
                         db.session.add(time_slot_obj)
                         db.session.commit()
 
+                    # Clear existing classes in this time slot for this day
+                    existing_classes = ScheduledClass.query.filter_by(time_slot_id=time_slot_obj.id).all()
+                    for existing_class in existing_classes:
+                        db.session.delete(existing_class)
+
+                    # Add new classes for the current time slot
                     for class_name in class_names:
-                        # Check if the class with the same name and section already exists for this time slot
+                        # Ensure that a class with the same section does not already exist for this time slot
                         class_obj = ScheduledClass.query.filter_by(
                             name=class_name,
                             time_slot_id=time_slot_obj.id,
@@ -84,12 +90,15 @@ def schedule():
 
                     db.session.commit()
 
-        # Copy classes to paired days based on dayBlocks
+        # Copy classes to paired days based on dayBlocks (ensure no mismatching sections)
         copy_classes(dayBlocks, sectionNumber)
 
         return jsonify(success=True, message="Schedule added successfully")
 
     return jsonify(success=False, message="Invalid input")
+
+
+
 
 def copy_classes(dayBlocks, sectionNumber):
     day_pairs = {
@@ -116,7 +125,7 @@ def copy_classes(dayBlocks, sectionNumber):
             for time_slot in time_slots:
                 # Get all the scheduled classes for the current time slot on the source day
                 class_names_with_professors = [
-                    (scheduled_class.name, scheduled_class.professor_name, scheduled_class.day_blocks)
+                    (scheduled_class.name, scheduled_class.professor_name, scheduled_class.class_section, scheduled_class.day_blocks)
                     for scheduled_class in ScheduledClass.query.filter_by(time_slot_id=time_slot.id).all()
                 ]
 
@@ -135,7 +144,11 @@ def copy_classes(dayBlocks, sectionNumber):
                         target_time_slot = TimeSlot(day_id=target_day_obj.id, time=time_slot.time)
                         db.session.add(target_time_slot)
 
-                    for class_name, professor_name, day_blocks in class_names_with_professors:
+                    for class_name, professor_name, class_section, day_blocks in class_names_with_professors:
+                        # Ensure the class is copied only if the section matches
+                        if class_section != sectionNumber:
+                            continue  # Skip copying if the section doesn't match
+
                         # Check if the class already exists with the same name, section, and time slot on the target day
                         existing_class = ScheduledClass.query.filter_by(
                             name=class_name,
@@ -156,6 +169,11 @@ def copy_classes(dayBlocks, sectionNumber):
                             db.session.add(new_class)
 
     db.session.commit()  # Commit changes after copying classes
+
+
+
+
+
 
 
 @app.route('/clear_database', methods=['POST']) #TEMP
