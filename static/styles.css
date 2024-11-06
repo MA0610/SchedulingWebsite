@@ -42,7 +42,6 @@ body, html {
     grid-template-columns: repeat(5, 1fr); /* Columns for each day */
     grid-gap: 10px;
     overflow-y: scroll;
-    max-height: 500px;
 }
 .day {
 max-height: 100%; /* Adjust as needed */
@@ -179,10 +178,11 @@ button {
 button:hover {
     background-color: #5aa9a3;
 }
-/* Cant be tested until Ui format changes */
 .table-hover tbody tr:hover {
     background-color: #f0f8ff; /* Light blue for hover */
 }
+
+/* attempt */
 @media (max-width: 768px) {
     .schedule {
         grid-template-columns: 1fr; /* Single column layout for smaller screens */
@@ -190,5 +190,6 @@ button:hover {
 
     .addCourse {
         min-width: 100%; /* Ensure the side panel stacks vertically */
+        overflow-y: auto;
     }
 }
