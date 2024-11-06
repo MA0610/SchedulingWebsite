@@ -23,18 +23,16 @@
                 <input type="text" id="professor-name" placeholder="Enter professor name">
             </div>
 
-            <div class="day-selector">
+            <!-- <div class="day-selector">
                 <label>Select Days: </label>
                 <button class="day-button" data-days="MWF">MWF</button>
                 <button class="day-button" data-days="TuTh">TuTh</button>
                 <button class="day-button" data-days="MW">MW</button>
-            </div>
+            </div> -->
 
             <div class="time-selector">
-                <label>Start Time: </label>
-                <input type="text" id="start-time" placeholder="ex. 0:00">
-                <label>End Time: </label>
-                <input type="text" id="end-time" placeholder="ex. 0:00">
+                <label>Class Section: </label>
+                <input type="text" id="class_section" placeholder="ex. 0">
                 <button id="add-course-btn">Add Course</button>
             </div>
             <h2>Available Classes</h2>
@@ -158,28 +156,23 @@
     <script>
 
 
+
+
 document.getElementById('add-course-btn').addEventListener('click', () => {
         const courseName = document.getElementById('new-course').value;
-        const startTime = document.getElementById('start-time').value;
-        const endTime = document.getElementById('end-time').value;
-        const selectedDays = Array.from(document.querySelectorAll('.day-button.selected'))
-                                .map(button => button.dataset.days)
-                                .join(', ');
-
-        if (!courseName || !startTime || !endTime || !selectedDays) {
-            alert('Please fill in all fields.');
-            return;
-        }
+        const professorName = document.getElementById('professor-name').value;
+        const sectionNumber = document.getElementById('class_section').value;
+        
 
         const newClass = document.createElement('div');
         newClass.classList.add('class');
         newClass.setAttribute('draggable', 'true');
         newClass.setAttribute('data-class', courseName);
-        newClass.setAttribute('data-days', selectedDays);
-        newClass.setAttribute('data-start-time', startTime);
-        newClass.setAttribute('data-end-time', endTime);
+        newClass.setAttribute('professor-name',professorName);
+        newClass.setAttribute('class_section', sectionNumber);
 
-        newClass.textContent = `${courseName} (${selectedDays} ${startTime} - ${endTime})`;
+
+        newClass.textContent = `${courseName} ${sectionNumber} (${professorName})`;
         
         newClass.addEventListener('dragstart', () => newClass.classList.add('dragging'));
         newClass.addEventListener('dragend', () => newClass.classList.remove('dragging'));
@@ -188,17 +181,12 @@ document.getElementById('add-course-btn').addEventListener('click', () => {
 
         // Clear the form inputs
         document.getElementById('new-course').value = '';
-        document.getElementById('start-time').value = '';
-        document.getElementById('end-time').value = '';
-        document.querySelectorAll('.day-button').forEach(btn => btn.classList.remove('selected'));
+        document.getElementById('professor-name').value = '';
+        document.getElementById('class_section').value = '';
+
     });
 
-    // Add functionality to select day buttons
-    document.querySelectorAll('.day-button').forEach(button => {
-        button.addEventListener('click', () => {
-            button.classList.toggle('selected');
-        });
-    });
+
 
 
 
@@ -259,35 +247,9 @@ trashBin.addEventListener('drop', () => {
         const className = draggingElement.getAttribute('data-class');
         const day = draggingElement.closest('.day').getAttribute('data-day');
         const timeSlot = draggingElement.closest('.time-slot');
-
-        if (timeSlot) {
-            const timeSlotIndex = timeSlot.getAttribute('data-time-slot');
-
-            // Send request to remove class from the schedule
-            fetch('/remove_class', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ day: day, time_slot: timeSlotIndex, class: className })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Successfully removed, append back to available classes
-                    availableClassesContainer.appendChild(draggingElement);
-                    console.log('Class removed successfully:', data.schedule);
-                } else {
-                    console.error('Error removing class:', data.message);
-                }
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-            });
-        }
+        availableClassesContainer.appendChild(draggingElement);
     }
 });
-/////////////
 
 const clearDatabaseButton = document.getElementById('clearDatabaseButton');
 
@@ -315,15 +277,6 @@ clearDatabaseButton.addEventListener('click', () => {
 });
 
 
-
-
-
-
-
-
-
-//////////
-
        // Submit schedule functionality
    
 submitButton.addEventListener('click', () => {
@@ -347,8 +300,8 @@ submitButton.addEventListener('click', () => {
                 const daySetValue = slot.getAttribute('day-set');
                 const timeValue = slot.getAttribute('data-days');
 
-                // Get the professor's name from the text field
-                const professorName = document.getElementById('professor-name').value;
+                const profName = classElement.getAttribute('professor-name'); 
+                const sectionNumber = classElement.getAttribute('class_section');
 
                 // Send data including the professor's name
                 fetch('/schedule', {
@@ -360,7 +313,8 @@ submitButton.addEventListener('click', () => {
                         schedule: newScheduleData, 
                         set: daySetValue, 
                         time: timeValue, 
-                        professor: professorName 
+                        professor: profName,
+                        section: sectionNumber
                     })
                 })
                 .then(response => response.json())
