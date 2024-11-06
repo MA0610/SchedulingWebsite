@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% block content %}
 
+{% block content %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,8 +16,8 @@
         }
     </style>
     <script>
-        function removeClass(className, professorName, timeSlotTime) {
-            if (confirm(`Are you sure you want to remove ${className} taught by ${professorName}?`)) {
+        function removeClass(className, professorName, timeSlotTime, classSection) {
+            if (confirm(`Are you sure you want to remove ${className} ${classSection} taught by ${professorName}?`)) {
                 fetch('/remove_class_db', {
                     method: 'POST',
                     headers: {
@@ -26,7 +26,8 @@
                     body: JSON.stringify({
                         class_name: className,
                         professor_name: professorName,
-                        time_slot_time: timeSlotTime  // Send time as a string
+                        time_slot_time: timeSlotTime,  // Send time as a string
+                        class_section: classSection  // Pass class section
                     })
                 })
                 .then(response => response.json())
@@ -68,8 +69,13 @@
                                     <td>
                                         {% if time_slot.classes %}
                                             {% for class_info in time_slot.classes %}
-                                                {{ class_info.class_name }} ({{ class_info.professor_name }}) 
-                                                <button onclick="removeClass('{{ class_info.class_name }}', '{{ class_info.professor_name }}', '{{ time_slot.time }}')">Remove</button><br>
+                                                <!-- Display class name, section, and professor -->
+                                                {{ class_info.class_name }} {{ class_info.class_section }} ({{ class_info.professor_name }})
+                                                
+                                                <!-- Remove button for each class -->
+                                                <button onclick="removeClass('{{ class_info.class_name }}', '{{ class_info.professor_name }}', '{{ time_slot.time }}', '{{ class_info.class_section }}')">Remove</button><br>
+
+                                                <!-- Show additional day blocks info -->
                                                 <small>Day Blocks: {{ class_info.day_blocks }}</small><br>
                                             {% endfor %}
                                         {% else %}
@@ -91,5 +97,4 @@
     </div>
 </body>
 </html>
-
 {% endblock %}
