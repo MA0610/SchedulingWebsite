@@ -277,61 +277,80 @@ clearDatabaseButton.addEventListener('click', () => {
 });
 
 
-       // Submit schedule functionality
-   
-submitButton.addEventListener('click', () => {
-    const newScheduleData = Array.from({ length: 5 }, () => Array(20).fill(null)); // 5 days, 20 time slots
+
+
+
+
+//KIND OF WORKS, CREATES EXTRA TIME SLOTS WHEN DEALING WITH CLASSES ON FRIDAY
+
+submitButton.addEventListener('click', async () => {
     const days = document.querySelectorAll('.day');
 
-    days.forEach(day => {
+    // Loop over each day
+    for (let day of days) {
         const dayIndex = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].indexOf(day.getAttribute('data-day'));
         const timeSlots = day.querySelectorAll('.time-slot');
 
-        timeSlots.forEach((slot, index) => {
+        // Loop over each time slot for the day
+        for (let index = 0; index < timeSlots.length; index++) {
+            const slot = timeSlots[index];
             const classElement = slot.querySelector('.class');
 
+            
             if (classElement) {
-                if (!newScheduleData[dayIndex][index]) {
-                    newScheduleData[dayIndex][index] = [];
-                }
-                newScheduleData[dayIndex][index].push(classElement.getAttribute('data-class'));
+                // Create a new schedule array with the current day and time slot filled in
+                const newScheduleData = Array.from({ length: 5 }, () => Array(20).fill(null)); // 5 days, 20 time slots
+                
+                // Populate just the current slot's data
+                newScheduleData[dayIndex][index] = [classElement.getAttribute('data-class')];
 
-                // Collect the day-set value and time value
+                // Collect additional data
                 const daySetValue = slot.getAttribute('day-set');
                 const timeValue = slot.getAttribute('data-days');
-
-                const profName = classElement.getAttribute('professor-name'); 
+                const profName = classElement.getAttribute('professor-name');
                 const sectionNumber = classElement.getAttribute('class_section');
 
-                // Send data including the professor's name
-                fetch('/schedule', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ 
-                        schedule: newScheduleData, 
-                        set: daySetValue, 
-                        time: timeValue, 
-                        professor: profName,
-                        section: sectionNumber
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
+                // Prepare the data for the POST request
+                const requestData = {
+                    schedule: newScheduleData, // Include only the filled-in slot data
+                    set: daySetValue,
+                    time: timeValue,
+                    professor: profName,
+                    section: sectionNumber
+                };
+
+                try {
+                    // Await the fetch request to ensure sequential execution
+                    const response = await fetch('/schedule', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(requestData)
+                    });
+
+                    const data = await response.json();
+
                     if (data.success) {
-                        alert('Schedule submitted successfully!');
+                        console.log('Schedule for', day.getAttribute('data-day'), 'at time slot', index, 'submitted successfully!');
                     } else {
-                        alert('Error submitting schedule: ' + data.message);
+                        console.error('Error submitting schedule for', day.getAttribute('data-day'), 'at time slot', index, ':', data.message);
                     }
-                })
-                .catch((error) => {
-                    console.error('Error:', error);
-                });
+                } catch (error) {
+                    console.error('Error during fetch:', error);
+                }
             }
-        });
-    });
+        }
+    }
+
+    // After all submissions are done, notify the user
+    alert('All schedule submissions completed!');
 });
+
+
+
+ 
+
 
 
     </script>
