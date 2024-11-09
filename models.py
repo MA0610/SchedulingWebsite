@@ -20,3 +20,12 @@ class ScheduledClass(db.Model):
     time_slot_id = db.Column(db.Integer, db.ForeignKey('time_slot.id'), nullable=False)
     day_blocks = db.Column(db.String(100), nullable=True)
     class_section = db.Column(db.String(10), nullable = True)
+
+class Conflict(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    class_id = db.Column(db.Integer, db.ForeignKey('scheduled_class.id'), nullable=False)
+    conflict_class_id = db.Column(db.Integer, db.ForeignKey('scheduled_class.id'), nullable=False)
+
+    # Optional: add relationships for easier querying
+    class_ = db.relationship('ScheduledClass', foreign_keys=[class_id])
+    conflict_class = db.relationship('ScheduledClass', foreign_keys=[conflict_class_id])

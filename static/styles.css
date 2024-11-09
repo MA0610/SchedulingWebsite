@@ -42,7 +42,7 @@ body, html {
     grid-template-columns: repeat(5, 1fr); /* Columns for each day */
     grid-gap: 10px;
     overflow-y: scroll;
-    max-height: 500px;
+    /* height: 100%; */
 }
 .day {
 max-height: 100%; /* Adjust as needed */
@@ -192,3 +192,9 @@ button:hover {
         min-width: 100%; /* Ensure the side panel stacks vertically */
     }
 }
+
+.conflict {
+    color: red;
+    font-weight: bold;
+}
+
