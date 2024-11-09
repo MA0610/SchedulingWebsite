@@ -10,6 +10,7 @@
     <style>
         body {
             margin: 20px;
+            overflow: scroll;
         }
         .schedule-table {
             margin-top: 20px;
@@ -63,11 +64,11 @@
                     {% for day in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"] %}
                         {% if schedules[day] %}
                             {% for time_slot in schedules[day].time_slots %}
-                                <tr>
-                                    <td>{{ day }}</td>
-                                    <td>{{ time_slot.time }}</td>
-                                    <td>
-                                        {% if time_slot.classes %}
+                                {% if time_slot.classes %}
+                                    <tr>
+                                        <td>{{ day }}</td>
+                                        <td>{{ time_slot.time }}</td>
+                                        <td>
                                             {% for class_info in time_slot.classes %}
                                                 <!-- Display class name, section, and professor -->
                                                 {{ class_info.class_name }} {{ class_info.class_section }} ({{ class_info.professor_name }})
@@ -78,17 +79,10 @@
                                                 <!-- Show additional day blocks info -->
                                                 <small>Day Blocks: {{ class_info.day_blocks }}</small><br>
                                             {% endfor %}
-                                        {% else %}
-                                            No classes scheduled
-                                        {% endif %}
-                                    </td>
-                                </tr>
+                                        </td>
+                                    </tr>
+                                {% endif %}
                             {% endfor %}
-                        {% else %}
-                            <tr>
-                                <td>{{ day }}</td>
-                                <td colspan="2">No time slots available</td>
-                            </tr>
                         {% endif %}
                     {% endfor %}
                 </tbody>
