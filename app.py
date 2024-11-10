@@ -104,6 +104,7 @@ def copy_classes(dayBlocks, sectionNumber):
     day_pairs = {
         'MW': ['Monday', 'Wednesday'],
         'MF': ['Monday', 'Friday'],
+        'WF': ['Wednesday', 'Friday'],
         'TR': ['Tuesday', 'Thursday'],
         'MWF': ['Monday', 'Wednesday', 'Friday'],
         'M-F': ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
@@ -169,9 +170,6 @@ def copy_classes(dayBlocks, sectionNumber):
                             db.session.add(new_class)
 
     db.session.commit()  # Commit changes after copying classes
-
-
-
 
 
 
