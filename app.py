@@ -38,6 +38,11 @@ def index():
 def get_schedules():
     return jsonify(schedules_3d)
 
+@app.route('/conflict_form')
+def conflict_form():
+    return render_template('conflict.html')
+
+
 # Posts data to database
 @app.route('/schedule', methods=['POST'])
 def schedule():
@@ -263,6 +268,60 @@ def display_schedules():
             schedules[day_name] = day_data
 
     return render_template('schedules.html', schedules=schedules)
+class Conflict(db.Model):
+    __tablename__ = 'conflicts'
+    id = db.Column(db.Integer, primary_key=True)
+    department1 = db.Column(db.String(10))
+    class_number1 = db.Column(db.String(10))
+    department2 = db.Column(db.String(10))
+    class_number2 = db.Column(db.String(10))
+
+@app.route('/add_conflict', methods=['POST'])
+def add_conflict():
+    data = request.json
+    department1 = data.get('department1')
+    class_number1 = data.get('class_number1')
+    department2 = data.get('department2')
+    class_number2 = data.get('class_number2')
+
+    conflict = Conflict(
+        department1=department1,
+        class_number1=class_number1,
+        department2=department2,
+        class_number2=class_number2
+    )
+    db.session.add(conflict)
+    db.session.commit()
+    return jsonify(success=True, message="Conflict added successfully")
+
+@app.route('/schedule', methods=['POST'])
+def schedule():
+    data = request.json
+    new_schedule = data.get('schedule')
+    dayBlocks = data.get('set')
+    timeBlock = data.get('time')
+    profName = data.get('professor')
+
+    for day_index, day in enumerate(new_schedule):
+        for time_slot_index, class_names in enumerate(day):
+            for class_name in class_names:
+                department, class_number = class_name.split()  # Assuming class_name = "COMP 139"
+                conflicts = Conflict.query.filter(
+                    ((Conflict.department1 == department) & (Conflict.class_number1 == class_number)) |
+                    ((Conflict.department2 == department) & (Conflict.class_number2 == class_number))
+                ).all()
+
+                for conflict in conflicts:
+                    # Find if the conflict class is already in this time slot
+                    conflicting_class = None
+                    if f"{conflict.department1} {conflict.class_number1}" in class_names or \
+                       f"{conflict.department2} {conflict.class_number2}" in class_names:
+                        conflicting_class = conflict
+
+                    if conflicting_class:
+                        return jsonify(success=False, message=f"Conflict detected with {conflicting_class}")
+
+    # Continue with adding to the database if no conflicts are found...
 
 
 if __name__ == '__main__':
