@@ -172,6 +172,51 @@ def copy_classes(dayBlocks, sectionNumber):
     db.session.commit()  # Commit changes after copying classes
 
 
+@app.route('/class_conflicts')
+def class_conflicts():
+    all_classes = ScheduledClass.query.all()  # Retrieve all classes from the database
+    conflicts = Conflict.query.all()
+    
+    # Create a set of tuples for quick lookup of existing conflicts
+    conflict_pairs = {(conflict.class_id, conflict.conflict_class_id) for conflict in conflicts}
+
+    return render_template('class_conflicts.html', all_classes=all_classes, conflict_pairs=conflict_pairs)
+
+
+
+@app.route('/add_conflict', methods=['POST'])
+def add_conflict():
+    data = request.json
+    class_id = data.get('class_id')
+    conflict_class_id = data.get('conflict_class_id')
+
+    if not class_id or not conflict_class_id:
+        return jsonify(success=False, message="Both class IDs are required.")
+
+    # Ensure conflict doesn’t already exist
+    existing_conflict = Conflict.query.filter_by(class_id=class_id, conflict_class_id=conflict_class_id).first()
+    if existing_conflict:
+        return jsonify(success=False, message="This conflict already exists.")
+
+    # Add the conflict
+    conflict = Conflict(class_id=class_id, conflict_class_id=conflict_class_id)
+    db.session.add(conflict)
+    db.session.commit()
+    return jsonify(success=True, message="Conflict marked successfully.")
+
+@app.route('/remove_conflict', methods=['POST'])
+def remove_conflict():
+    data = request.json
+    class_id = data.get('class_id')
+    conflict_class_id = data.get('conflict_class_id')
+
+    # Remove the conflict
+    conflict = Conflict.query.filter_by(class_id=class_id, conflict_class_id=conflict_class_id).first()
+    if conflict:
+        db.session.delete(conflict)
+        db.session.commit()
+        return jsonify(success=True, message="Conflict removed successfully.")
+    return jsonify(success=False, message="Conflict not found.")
 
 
 @app.route('/clear_database', methods=['POST']) #TEMP
