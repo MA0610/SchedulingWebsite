@@ -266,17 +266,30 @@ def display_schedules():
 
 """Everything below this line is meant to detect potential class conflicts"""
 #Storing in globally held dictionary for now
-class_conflicts = {}
+class_conflicts = {
+    "math101": {"history201", "biology305"},
+    "history201": {"math101"},
+    "biology305": {"math101"}
+}
 
-def record_conflict(class_name1:str, class_name2: str):
-    #Records conflicts between two classes in dictionary
+
+def record_conflict(class_name1: str, class_name2: str):
+    # Normalize to lowercase and add numbers to the end if needed
+    class_name1 = class_name1.lower()
+    class_name2 = class_name2.lower()
+
     if class_name1 not in class_conflicts:
-        class_conflicts[class_naame_1] = set()
+        class_conflicts[class_name1] = set()
     if class_name2 not in class_conflicts:
         class_conflicts[class_name2] = set()
-    
+
     class_conflicts[class_name1].add(class_name2)
     class_conflicts[class_name2].add(class_name1)
+
+
+def find_conflicts(class_name: str) -> Optional[List[str]]:
+    return list(class_conflicts.get(class_name, [])) if class_name in class_conflicts else []
+
 
 def find_conflicts(class_name:str) -> Optional[List[str]]:
     #Finds all conflicts for a given class when passed
@@ -293,6 +306,19 @@ def find_all_conflicts(classList:List[str]) -> List[str]:
         for conflict in conflicts:
             conflicts.add(f"{class_name} conflicts with {conflict}")
     return list(conflicts)
+
+@app.route('/check_conflicts', methods=['POST'])
+def check_conflicts():
+    data = request.json
+    class_name = data.get('class_name')
+
+    # Fetch conflicts for the dragged class
+    conflicts = find_conflicts(class_name)
+
+    if conflicts:
+        return jsonify(success=True, conflicts=conflicts)
+    else:
+        return jsonify(success=False, message="No conflicts found.")
 
 
 

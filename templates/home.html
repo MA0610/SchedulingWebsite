@@ -565,4 +565,46 @@ submitButton.addEventListener('click', () => {
 
     </script>
 </body>
+<body>
+    <div id="conflict-display" style="position: fixed; bottom: 0; width: 100%; background-color: #f8d7da; padding: 10px; color: #721c24;">
+        <!-- Conflict information will be displayed here -->
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const draggableItems = document.querySelectorAll(".draggable");
+    
+            draggableItems.forEach(item => {
+                item.addEventListener("dragstart", function(event) {
+                    const className = event.target.getAttribute("data-class-name");
+    
+                    fetch("/check_conflicts", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ class_name: className })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        const conflictDisplay = document.getElementById("conflict-display");
+                        conflictDisplay.innerHTML = ""; // Clear previous conflicts
+    
+                        if (data.success) {
+                            data.conflicts.forEach(conflict => {
+                                const conflictElement = document.createElement("p");
+                                conflictElement.textContent = conflict;
+                                conflictDisplay.appendChild(conflictElement);
+                            });
+                        } else {
+                            conflictDisplay.textContent = "No conflicts found.";
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error fetching conflicts:", error);
+                    });
+                });
+            });
+        });
+        </script>
+</body>
 {% endblock %}
