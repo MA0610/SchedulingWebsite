@@ -18,3 +18,4 @@ class ScheduledClass(db.Model):
     professor_name = db.Column(db.String(100), nullable=False)
     time_slot_id = db.Column(db.Integer, db.ForeignKey('time_slot.id'), nullable=False)
     day_blocks = db.Column(db.String(100), nullable=True)
+    class_section = db.Column(db.String(10), nullable = True)

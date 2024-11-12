@@ -51,6 +51,7 @@ def schedule():
     dayBlocks = data.get('set')  # This could be a single block or a list of blocks
     timeBlock = data.get('time')
     profName = data.get('professor')
+    sectionNumber = data.get('section')
 
     if new_schedule and len(new_schedule) == NUM_DAYS and all(len(day) == NUM_TIME_SLOTS for day in new_schedule):
         for day_index, day in enumerate(new_schedule):
@@ -61,36 +62,54 @@ def schedule():
                     db.session.add(day_obj)
                     db.session.commit()
 
+                    # Get the corresponding time slot object
                     time_slot_obj = TimeSlot.query.filter_by(day_id=day_obj.id, time=timeBlock).first()
                     if not time_slot_obj:
                         time_slot_obj = TimeSlot(day_id=day_obj.id, time=timeBlock)
                         db.session.add(time_slot_obj)
                         db.session.commit()
 
+                    # Clear existing classes in this time slot for this day
+                    existing_classes = ScheduledClass.query.filter_by(time_slot_id=time_slot_obj.id).all()
+                    for existing_class in existing_classes:
+                        db.session.delete(existing_class)
+
+                    # Add new classes for the current time slot
                     for class_name in class_names:
-                        class_obj = ScheduledClass.query.filter_by(name=class_name, time_slot_id=time_slot_obj.id).first()
-                        if not class_obj:
+                        # Ensure that a class with the same section does not already exist for this time slot
+                        class_obj = ScheduledClass.query.filter_by(
+                            name=class_name,
+                            time_slot_id=time_slot_obj.id,
+                            class_section=sectionNumber
+                        ).first()
+
+                        if not class_obj:  # Only add if class with same name and section does not exist
                             class_obj = ScheduledClass(
                                 name=class_name,
                                 professor_name=profName,
                                 time_slot_id=time_slot_obj.id,
-                                day_blocks="".join(dayBlocks)  # Store dayBlocks
+                                day_blocks="".join(dayBlocks),
+                                class_section=sectionNumber
                             )
                             db.session.add(class_obj)
 
                     db.session.commit()
 
-        # Copy classes to paired days based on dayBlocks
-        copy_classes(dayBlocks)
+        # Copy classes to paired days based on dayBlocks (ensure no mismatching sections)
+        copy_classes(dayBlocks, sectionNumber)
 
         return jsonify(success=True, message="Schedule added successfully")
 
     return jsonify(success=False, message="Invalid input")
 
-def copy_classes(dayBlocks):
+
+
+
+def copy_classes(dayBlocks, sectionNumber):
     day_pairs = {
         'MW': ['Monday', 'Wednesday'],
         'MF': ['Monday', 'Friday'],
+        'WF': ['Wednesday', 'Friday'],
         'TR': ['Tuesday', 'Thursday'],
         'MWF': ['Monday', 'Wednesday', 'Friday'],
         'M-F': ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
@@ -110,8 +129,9 @@ def copy_classes(dayBlocks):
             # Get time slots for the source day
             time_slots = TimeSlot.query.filter_by(day_id=source_day_obj.id).all()
             for time_slot in time_slots:
+                # Get all the scheduled classes for the current time slot on the source day
                 class_names_with_professors = [
-                    (scheduled_class.name, scheduled_class.professor_name, scheduled_class.day_blocks)
+                    (scheduled_class.name, scheduled_class.professor_name, scheduled_class.class_section, scheduled_class.day_blocks)
                     for scheduled_class in ScheduledClass.query.filter_by(time_slot_id=time_slot.id).all()
                 ]
 
@@ -130,17 +150,34 @@ def copy_classes(dayBlocks):
                         target_time_slot = TimeSlot(day_id=target_day_obj.id, time=time_slot.time)
                         db.session.add(target_time_slot)
 
-                    for class_name, professor_name, day_blocks in class_names_with_professors:
-                        if not ScheduledClass.query.filter_by(name=class_name, time_slot_id=target_time_slot.id).first():
+                    for class_name, professor_name, class_section, day_blocks in class_names_with_professors:
+                        # Ensure the class is copied only if the section matches
+                        if class_section != sectionNumber:
+                            continue  # Skip copying if the section doesn't match
+
+                        # Check if the class already exists with the same name, section, and time slot on the target day
+                        existing_class = ScheduledClass.query.filter_by(
+                            name=class_name,
+                            professor_name=professor_name,
+                            time_slot_id=target_time_slot.id,
+                            class_section=sectionNumber  # Ensure section number is the same
+                        ).first()
+
+                        # Only add the class if it doesn't already exist on the target day and time slot
+                        if not existing_class:
                             new_class = ScheduledClass(
                                 name=class_name,
                                 professor_name=professor_name,
                                 time_slot_id=target_time_slot.id,
-                                day_blocks=day_blocks  # Copy day_blocks
+                                day_blocks=day_blocks,
+                                class_section=sectionNumber
                             )
                             db.session.add(new_class)
 
     db.session.commit()  # Commit changes after copying classes
+
+
+
 
 @app.route('/clear_database', methods=['POST']) #TEMP
 def clear_database():
@@ -158,7 +195,6 @@ def clear_database():
     except Exception as e:
         db.session.rollback()  # Rollback in case of an error
         return jsonify(success=False, message="An error occurred while clearing the database.", error=str(e))
-
 
 @app.route('/test', methods=['GET'])
 def test():
@@ -180,7 +216,8 @@ def test():
                 class_info.append({
                     "class_name": scheduled_class.name,
                     "professor_name": scheduled_class.professor_name,
-                    "day_blocks": scheduled_class.day_blocks  # Include day_blocks
+                    "class_section": scheduled_class.class_section,  # Include class_section
+                    "day_blocks": scheduled_class.day_blocks
                 })
 
             day_data["time_slots"].append({
@@ -192,6 +229,38 @@ def test():
 
     return jsonify(schedules)
 
+# @app.route('/test', methods=['GET'])
+# def test():
+#     schedules = {}
+#     days = Day.query.all()
+
+#     for day in days:
+#         day_data = {
+#             "name": day.name,
+#             "time_slots": []
+#         }
+#         time_slots = TimeSlot.query.filter_by(day_id=day.id).all()
+
+#         for time_slot in time_slots:
+#             class_info = []
+#             scheduled_classes = ScheduledClass.query.filter_by(time_slot_id=time_slot.id).all()
+
+#             for scheduled_class in scheduled_classes:
+#                 class_info.append({
+#                     "class_name": scheduled_class.name,
+#                     "professor_name": scheduled_class.professor_name,
+#                     "day_blocks": scheduled_class.day_blocks  # Include day_blocks
+#                 })
+
+#             day_data["time_slots"].append({
+#                 "time": time_slot.time,
+#                 "classes": class_info
+#             })
+
+#         schedules[day.name] = day_data
+
+#     return jsonify(schedules)
+
 
 @app.route('/remove_class_db', methods=['POST'])
 def remove_class_db():
@@ -199,6 +268,7 @@ def remove_class_db():
     class_name = data.get('class_name')
     professor_name = data.get('professor_name')
     time_slot_time = data.get('time_slot_time')  # This should match the time string
+    class_section = data.get('class_section')
 
     print(f"Removing class: {class_name}, Professor: {professor_name}, Time Slot: {time_slot_time}")
 
@@ -206,7 +276,9 @@ def remove_class_db():
         # Find all scheduled classes with the same name and professor
         scheduled_classes = ScheduledClass.query.filter_by(
             name=class_name,
-            professor_name=professor_name
+            professor_name=professor_name,
+            class_section = class_section
+            
         ).all()
 
         if scheduled_classes:
@@ -233,11 +305,48 @@ def remove_class_db():
         return jsonify(success=False, message="An error occurred while removing the class.", error=str(e))
 
 
+# @app.route('/display_schedules', methods=['GET'])
+# def display_schedules():
+#     schedules = {}
+#     days = Day.query.all()
+
+#     day_order = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+
+#     for day_name in day_order:
+#         day_obj = Day.query.filter_by(name=day_name).first()
+#         if day_obj:
+#             day_data = {
+#                 "name": day_name,
+#                 "time_slots": []
+#             }
+#             time_slots = TimeSlot.query.filter_by(day_id=day_obj.id).all()
+
+#             for time_slot in time_slots:
+#                 class_info = []
+#                 scheduled_classes = ScheduledClass.query.filter_by(time_slot_id=time_slot.id).all()
+
+#                 for scheduled_class in scheduled_classes:
+#                     class_info.append({
+#                         "class_name": scheduled_class.name,
+#                         "professor_name": scheduled_class.professor_name,
+#                         "day_blocks": scheduled_class.day_blocks,  # Include day_blocks here
+#                     })
+
+#                 day_data["time_slots"].append({
+#                     "time": time_slot.time,
+#                     "classes": class_info
+#                 })
+
+#             schedules[day_name] = day_data
+
+#     return render_template('schedules.html', schedules=schedules)
+
 @app.route('/display_schedules', methods=['GET'])
 def display_schedules():
     schedules = {}
     days = Day.query.all()
 
+    # Iterate through each day and fetch the related time slots and classes
     day_order = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
 
     for day_name in day_order:
@@ -257,7 +366,8 @@ def display_schedules():
                     class_info.append({
                         "class_name": scheduled_class.name,
                         "professor_name": scheduled_class.professor_name,
-                        "day_blocks": scheduled_class.day_blocks  # Include day_blocks here
+                        "class_section": scheduled_class.class_section,  # Make sure to pass class_section
+                        "day_blocks": scheduled_class.day_blocks
                     })
 
                 day_data["time_slots"].append({

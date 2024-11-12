@@ -6,190 +6,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dynamic Class Schedule</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-       
-        /* Main container to manage the layout */
-        .main-container {
-            display: flex;
-            height: 100vh; /* Full-height layout */
-            width: 100%;
-            margin: 0;
-            padding: 0;
-        }
-
-        /* Left panel: Add Course */
-        .addCourse {
-            flex: 2; /* Take up minimal space */
-            padding: 20px;
-            border-right: 2px solid #ccc;
-            background-color: #f4f4f4;
-            min-width: 200px; /* Optional: Set a minimum width */
-            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Right content (schedule + toolkit) */
-        .content {
-            flex: 6; /* Main content takes more space */
-            display: flex;
-            width: 100%; /* Ensure full width is used */
-            overflow: auto; /* Handle overflow gracefully */
-            padding: 20px;
-
-        }
-        .schedule {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr); /* Equal-width columns */
-            grid-gap: 10px;
-            width: 100%; /* Ensure it stretches */
-            overflow-y: scroll;
-            max-height: 500px;
-            
-        }
-        .day {
-            padding: 10px;
-            border: 1px solid #ccc;
-            background-color: #f4f4f4;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            overflow-y: auto;  /* Enable vertical scrolling */
-            max-height: 100%;  /* Limit the height to the available space */
-        }
-        .class {
-            background-color: #76c7c0;
-            padding: 10px;
-            margin: 10px 0;
-            color: white;
-            cursor: move;
-        }
-        .class.dragging {
-            opacity: 0.5;
-        }
-        .droppable {
-            min-height: 150px;
-            border: 2px dashed #ccc;
-        }
-        .search-container {
-            margin-bottom: 20px;
-        }
-        .scrollable-classes {
-            max-height: 200px;
-            overflow-y: auto;
-            border: 1px solid #ccc;
-            padding: 10px;
-            background-color: #f9f9f9;
-        }
-        .trash-bin {
-            display: flex;
-            flex-direction: column;
-            border: 2px dashed red;
-            padding: 20px;
-            text-align: center;
-            align-items: center;
-            color: red;
-            margin-top: 20px;
-            margin-bottom: 15px;
-            cursor: pointer;
-            min-height: 70px;
-        }
-        .notification {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            padding: 10px 20px;
-            background-color: #ff4444;
-            color: white;
-            border-radius: 5px;
-            z-index: 1000;
-            text-align: center;
-        }
-        .container {
-            width: 100vw;  /* Full width of the viewport */
-            height: 100vh; /* Full height of the viewport */
-            padding: 0;    /* Remove padding */
-            margin: 0;     /* Remove margin */
-            overflow: hidden; /* Prevent scrolling */
-            display: flex;
-            flex-direction: column;
-        }
-        .time-selector {
-            padding-bottom: 1em;
-        }
-        .day-button {
-            background-color: rgb(255, 255, 255);  /* Initial color */
-            color: #76c7c0;
-            border: black;
-            padding: 5px 10px;  /* Adjust padding */
-            cursor: pointer;
-            font-size: 14px;  /* Slightly smaller font */
-            border-radius: 50%;  /* Keeps it circular */
-            transition: background-color 0.3s ease;  /* Smooth transition */
-            width: 50px;  /* Smaller width */
-            height: 50px;  /* Smaller height */
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);  /* Small shadow */
-        }
-        .day-button.selected {
-            background-color: #76c7c0;
-            color: white;
-        }
-        .day-button:hover {
-            background-color: #5aa9a3;
-        }
-        #add-course-btn {
-            background-color: #76c7c0;  /* Initial color */
-            color: white;
-            border: none;
-            padding: 3px;
-            cursor: pointer;
-            font-size: 16px;
-            border-radius: 5px;
-            transition: background-color 0.3s ease;  /* Smooth transition */
-        }
-        #add-course-btn:hover {
-            background-color: #5aa9a3;  /* Color when hovered */
-        }
-        #submit-schedule-btn {
-            background-color: #76c7c0;  /* Initial color */
-            color: white;
-            border: none;
-            padding: 3px 10px;
-            cursor: pointer;
-            font-size: 16px;
-            border-radius: 5px;
-            transition: background-color 0.3s ease;  /* Smooth transition */
-            transform: translateX(100px); 
-        }
-        #submit-schedule-btn:hover {
-            background-color: #5aa9a3;
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
-    <h1>Class Schedule</h1>
-
-    <button type="button" id="submitButton">Submit Schedule</button>
-    
-    
-    <button type="button" id="clearDatabaseButton">Clear Database</button>
-
-
-    
     <div class="main-container">
         <div class="addCourse">
-            <h3>New Course</h3>
+            <h2>New Course</h2>
             <div class="add-course">
                 <label for="new-course">Name:</label>
                 <input type="text" id="new-course" placeholder="Enter valid course">
@@ -200,169 +23,132 @@
                 <input type="text" id="professor-name" placeholder="Enter professor name">
             </div>
 
-            <div class="day-selector">
+            <!-- <div class="day-selector">
                 <label>Select Days: </label>
                 <button class="day-button" data-days="MWF">MWF</button>
                 <button class="day-button" data-days="TuTh">TuTh</button>
                 <button class="day-button" data-days="MW">MW</button>
-            </div>
+            </div> -->
 
             <div class="time-selector">
-                <label>Start Time: </label>
-                <input type="text" id="start-time" placeholder="ex. 0:00">
-                <label>End Time: </label>
-                <input type="text" id="end-time" placeholder="ex. 0:00">
+                <label>Class Section: </label>
+                <input type="text" id="class_section" placeholder="ex. 0">
                 <button id="add-course-btn">Add Course</button>
             </div>
+            <h2>Available Classes</h2>
+            <div class="search-container">
+                <label for="search">Search Classes:</label>
+                <input type="text" id="search" placeholder="Search by class name or code...">
+            </div>
+        
+            <div class="scrollable-classes" id="available-classes">
+                <div class="class" draggable="true" data-class="Math 101">Math 101 (e.g.)</div>
+            </div>
+        
+            <div class="trash-bin droppable" id="trash-bin">
+                Drop here to remove from schedule
+            </div>
 
+            <button type="button" id="submitButton">Submit Schedule</button>  
+            <button type="button" id="clearDatabaseButton">Clear Database</button>
+        </div>  
+            
+        <div class="content">
             <div class="schedule">
                 <div class="day droppable" data-day="Monday">
                     <h3>Monday</h3>
+                    
                     <div class="time-slot droppable" data-time-slot="0" day-set="MW" data-days="8:00-9:25 am">8:00-9:25 am MW</div>
                     <div class="time-slot droppable" data-time-slot="1" day-set="MF" data-days="8:00-9:25 am">8:00-9:25 am MF</div>
-                    <div class="time-slot droppable" data-time-slot="2" day-set="M-F" data-days="8:30-9:25 am">8:30-9:25 am M-F</div>
-                    <div class="time-slot droppable" data-time-slot="3" day-set="MWF" data-days="8:30-9:25 am">8:30-9:25 am MWF</div>
+                    <div class="time-slot droppable" data-time-slot="2" day-set="MWF" data-days="8:30-9:25 am">8:30-9:25 am MWF</div>
+                    <div class="time-slot droppable" data-time-slot="3" day-set="M-F" data-days="8:30-9:25 am">8:30-9:25 am M-F</div>
                     <div class="time-slot droppable" data-time-slot="4" day-set="MWF" data-days="9:35-10:30 am">9:35-10:30 am MWF</div>
                     <div class="time-slot droppable" data-time-slot="5" day-set="MWF" data-days="10:40-11:35 am">10:40-11:35 am MWF</div>
                     <div class="time-slot droppable" data-time-slot="6" day-set="MWF" data-days="11:45-12:40 pm">11:45-12:40 pm MWF</div>
-                    <div class="time-slot droppable" data-time-slot="7" day-set="M-F" data-days="1:55-2:50 pm">1:55-2:50 pm M-F</div>
-                    <div class="time-slot droppable" data-time-slot="8" day-set="MWF" data-days="1:55-2:50 pm">1:55-2:50 pm MWF</div>
-                    <div class="time-slot droppable" data-time-slot="9" day-set="MWF" data-days="1:55-2:50 pm">1:55-2:50 pm MWF</div>
-                    <div class="time-slot droppable" data-time-slot="10" day-set="MWF" data-days="3:00-3:55 pm">3:00-3:55 pm MWF</div>
-                    <div class="time-slot droppable" data-time-slot="11" day-set="M-LAB" data-days="3:00-5:55 pm">3:00-5:55 pm M-LAB</div>
-                    <div class="time-slot droppable" data-time-slot="12" day-set="MWF" data-days="4:05-5:00 pm">4:05-5:00 pm MWF</div>
-                    <div class="time-slot droppable" data-time-slot="13" day-set="MW" data-days="4:05-5:30 pm">4:05-5:30 pm MW</div>
-                    <div class="time-slot droppable" data-time-slot="14" day-set="MF" data-days="4:05-5:30 pm">4:05-5:30 pm MF</div>
-                    <div class="time-slot droppable" data-time-slot="15" day-set="MW" data-days="5:40-7:05 pm">5:40-7:05 pm MW</div>
-                    <div class="time-slot droppable" data-time-slot="16" day-set="MW" data-days="7:15-8:40 pm">7:15-8:40 pm MW</div>
-                    <div class="time-slot droppable" data-time-slot="17" day-set="M-LAB" data-days="7:15-10:10 pm">7:15-10:10 pm M-LAB</div>
-                    <div class="time-slot droppable" data-time-slot="18" day-set="MW" data-days="8:50-10:15 pm">8:50-10:15 pm MW</div>
+                    <div class="time-slot droppable" data-time-slot="7" day-set="MWF" data-days="1:55-2:50 pm">1:55-2:50 pm MWF</div>
+                    <div class="time-slot droppable" data-time-slot="8" day-set="M-F" data-days="1:55-2:50 pm">1:55-2:50 pm M-F</div>
+                    <div class="time-slot droppable" data-time-slot="9" day-set="MWF" data-days="3:00-3:55 pm">3:00-3:55 pm MWF</div>
+                    <div class="time-slot droppable" data-time-slot="10" day-set="M-LAB" data-days="3:00-5:55 pm">3:00-5:55 pm M-LAB</div>
+                    <div class="time-slot droppable" data-time-slot="11" day-set="MWF" data-days="4:05-5:00 pm">4:05-5:00 pm MWF</div>
+                    <div class="time-slot droppable" data-time-slot="12" day-set="MW" data-days="4:05-5:30 pm">4:05-5:30 pm MW</div>
+                    <div class="time-slot droppable" data-time-slot="13" day-set="MF" data-days="4:05-5:30 pm">4:05-5:30 pm MF</div>
+                    <div class="time-slot droppable" data-time-slot="14" day-set="MW" data-days="5:40-7:05 pm">5:40-7:05 pm MW</div>
+                    <div class="time-slot droppable" data-time-slot="15" day-set="MW" data-days="7:15-8:40 pm">7:15-8:40 pm MW</div>
+                    <div class="time-slot droppable" data-time-slot="16" day-set="M-LAB" data-days="7:15-10:10 pm">7:15-10:10 pm M</div>
+                    <div class="time-slot droppable" data-time-slot="17" day-set="MW" data-days="8:50-10:15 pm">8:50-10:15 pm MW</div>
+             
                 </div>
-                
+                    
                 <div class="day droppable" data-day="Tuesday">
                     <h3>Tuesday</h3>
-                    <div class="time-slot droppable" data-time-slot="0" day-set="T" data-days="8:30-9:25 am">8:30-9:25 am T</div>
-                    <div class="time-slot droppable" data-time-slot="1" day-set="TR" data-days="8:30-9:55 am">8:30-9:55 am TR</div>
-                    <div class="time-slot droppable" data-time-slot="2" day-set="T" data-days="8:30-11:25 am">8:30-11:25 am T</div>
-                    <div class="time-slot droppable" data-time-slot="3" day-set="T-LAB" data-days="8:30-11:25 am">8:30-11:25 am T-LAB</div>
-                    <div class="time-slot droppable" data-time-slot="4" day-set="TR" data-days="10:05-11:30 am">10:05-11:30 am TR</div>
-                    <div class="time-slot droppable" data-time-slot="5" day-set="TR" data-days="1:30-2:55 pm">1:30-2:55 pm TR</div>
-                    <div class="time-slot droppable" data-time-slot="6" day-set="T" data-days="1:30-4:25 pm">1:30-4:25 pm T</div>
-                    <div class="time-slot droppable" data-time-slot="7" day-set="T-LAB" data-days="1:30-4:25 pm">1:30-4:25 pm T-LAB</div>
-                    <div class="time-slot droppable" data-time-slot="8" day-set="M-F" data-days="1:55-2:50 pm">1:55-2:50 pm M-F</div>
-                    <div class="time-slot droppable" data-time-slot="9" day-set="TR" data-days="3:05-4:30 pm">3:05-4:30 pm TR</div>
-                    <div class="time-slot droppable" data-time-slot="10" day-set="TR" data-days="5:00-6:25 pm">5:00-6:25 pm TR</div>
-                    <div class="time-slot droppable" data-time-slot="11" day-set="T" data-days="7:15-10:15 pm">7:15-10:15 pm T</div>
+
+                    <div class="time-slot droppable" data-time-slot="0" day-set="TR" data-days="8:30-9:55 am">8:30-9:55 am TR</div>
+                    <div class="time-slot droppable" data-time-slot="1" day-set="T" data-days="8:30-11:55 am">8:30-11:55 am T</div>
+                    <div class="time-slot droppable" data-time-slot="2" day-set="TR" data-days="10:05-11:30 am">10:05-11:30 am TR</div>
+                    <div class="time-slot droppable" data-time-slot="3" day-set="TR" data-days="1:30-2:55 pm">1:30-2:55 pm TR</div>
+                    <div class="time-slot droppable" data-time-slot="4" day-set="T" data-days="1:30-4:25 pm">1:30-4:25 pm T</div>
+                    <div class="time-slot droppable" data-time-slot="5" day-set="T-LAB" data-days="1:30-4:25 pm">1:30-4:25 pm T-LAB</div>
+                    <div class="time-slot droppable" data-time-slot="6" day-set="TR" data-days="3:05-4:30 pm">3:05-4:30 pm TR</div>
+                    <div class="time-slot droppable" data-time-slot="7" day-set="TR" data-days="5:00-6:25 pm">5:00-6:35 pm TR</div>
+                    <div class="time-slot droppable" data-time-slot="8" day-set="T" data-days="7:15-10:15 pm">7:15-10:15 pm T</div>
+
+
                 </div>
-                
+                    
                 <div class="day droppable" data-day="Wednesday">
                     <h3>Wednesday</h3>
-                    <div class="time-slot droppable" data-time-slot="0" day-set="MW" data-days="8:00-9:25 am">8:00-9:25 am MW</div>
-                    <div class="time-slot droppable" data-time-slot="1" day-set="M-F" data-days="8:30-9:25 am">8:30-9:25 am M-F</div>
-                    <div class="time-slot droppable" data-time-slot="2" day-set="MWF" data-days="8:30-9:25 am">8:30-9:25 am MWF</div>
-                    <div class="time-slot droppable" data-time-slot="3" day-set="MWF" data-days="9:35-10:30 am">9:35-10:30 am MWF</div>
-                    <div class="time-slot droppable" data-time-slot="4" day-set="MWF" data-days="10:40-11:35 am">10:40-11:35 am MWF</div>
-                    <div class="time-slot droppable" data-time-slot="5" day-set="MWF" data-days="11:45-12:40 pm">11:45-12:40 pm MWF</div>
-                    <div class="time-slot droppable" data-time-slot="6" day-set="M-F" data-days="1:55-2:50 pm">1:55-2:50 pm M-F</div>
-                    <div class="time-slot droppable" data-time-slot="7" day-set="MWF" data-days="1:55-2:50 pm">1:55-2:50 pm MWF</div>
-                    <div class="time-slot droppable" data-time-slot="8" day-set="MWF" data-days="1:55-2:50 pm">1:55-2:50 pm MWF</div>
-                    <div class="time-slot droppable" data-time-slot="9" day-set="W-LAB" data-days="1:55-2:50 pm">1:55-2:50 pm W-LAB</div>
-                    <div class="time-slot droppable" data-time-slot="10" day-set="MWF" data-days="3:00-3:55 pm">3:00-3:55 pm MWF</div>
-                    <div class="time-slot droppable" data-time-slot="11" day-set="W-LAB" data-days="3:00-5:55 pm">3:00-5:55 pm W-LAB</div>
-                    <div class="time-slot droppable" data-time-slot="12" day-set="MWF" data-days="4:05-5:00 pm">4:05-5:00 pm MWF</div>
-                    <div class="time-slot droppable" data-time-slot="13" day-set="MW" data-days="4:05-5:30 pm">4:05-5:30 pm MW</div>
-                    <div class="time-slot droppable" data-time-slot="15" day-set="MW" data-days="5:40-7:05 pm">5:40-7:05 pm MW</div>
-                    <div class="time-slot droppable" data-time-slot="16" day-set="MW" data-days="7:15-8:40 pm">7:15-8:40 pm MW</div>
-                    <div class="time-slot droppable" data-time-slot="17" day-set="W-LAB" data-days="7:15-10:10 pm">7:15-10:10 pm W-LAB</div>
-                    <div class="time-slot droppable" data-time-slot="18" day-set="MW" data-days="8:50-10:15 pm">8:50-10:15 pm MW</div>
+
+
+                    <div class="time-slot droppable" data-time-slot="0" day-set="WF" data-days="8:00-9:25 am">8:00-9:25 am WF</div>
+                    <div class="time-slot droppable" data-time-slot="1" day-set="W-LAB" data-days="1:55-4:50 pm">1:55-4:50 pm W-LAB</div>
+                    <div class="time-slot droppable" data-time-slot="2" day-set="W-LAB" data-days="3:00-5:55 pm">3:00-5:55 pm W-LAB</div>
+                    <div class="time-slot droppable" data-time-slot="3" day-set="WF" data-days="4:05-5:30 pm">4:05-5:30 pm WF</div>
+                    <div class="time-slot droppable" data-time-slot="4" day-set="W-LAB" data-days="7:15-10:10 pm">7:15-10:10 pm W-LAB</div>
+                    <div class="time-slot droppable" data-time-slot="5" day-set="W" data-days="7:15-10:15 pm">7:15-10:15 pm W-LAB</div>
+
                 </div>
-                
+                    
                 <div class="day droppable" data-day="Thursday">
                     <h3>Thursday</h3>
-                    <div class="time-slot droppable" data-time-slot="0" day-set="R" data-days="8:30-9:25 am">8:30-9:25 am R</div>
-                    <div class="time-slot droppable" data-time-slot="1" day-set="TR" data-days="8:30-9:55 am">8:30-9:55 am TR</div>
-                    <div class="time-slot droppable" data-time-slot="2" day-set="T" data-days="8:30-11:25 am">8:30-11:25 am T</div>
-                    <div class="time-slot droppable" data-time-slot="3" day-set="R-LAB" data-days="8:30-11:25 am">8:30-11:25 am R-LAB</div>
-                    <div class="time-slot droppable" data-time-slot="4" day-set="TR" data-days="10:05-11:30 am">10:05-11:30 am TR</div>
-                    <div class="time-slot droppable" data-time-slot="5" day-set="TR" data-days="1:30-2:55 pm">1:30-2:55 pm TR</div>
-                    <div class="time-slot droppable" data-time-slot="6" day-set="R" data-days="1:30-4:25 pm">1:30-4:25 pm R</div>
-                    <div class="time-slot droppable" data-time-slot="7" day-set="R-LAB" data-days="1:30-4:25 pm">1:30-4:25 pm R-LAB</div>
-                    <div class="time-slot droppable" data-time-slot="8" day-set="M-F" data-days="1:55-2:50 pm">1:55-2:50 pm M-F</div>
-                    <div class="time-slot droppable" data-time-slot="9" day-set="TR" data-days="3:05-4:30 pm">3:05-4:30 pm TR</div>
-                    <div class="time-slot droppable" data-time-slot="10" day-set="TR" data-days="5:00-6:25 pm">5:00-6:25 pm TR</div>
-                    <div class="time-slot droppable" data-time-slot="11" day-set="R" data-days="7:15-10:15 pm">7:15-10:15 pm R</div>
-                </div>
+
+                    <div class="time-slot droppable" data-time-slot="0" day-set="R-LAB" data-days="8:30-11:25 am">8:30-11:25 am R-LAB</div>
+                    <div class="time-slot droppable" data-time-slot="1" day-set="R" data-days="1:30-4:25 pm">1:30-4:25 pm R</div>
+                    <div class="time-slot droppable" data-time-slot="2" day-set="R-LAB" data-days="1:30-4:25 pm">1:30-4:25 pm R-LAB</div>
+                    <div class="time-slot droppable" data-time-slot="3" day-set="R-LAB" data-days="7:15-10:10 pm">7:15-10:10 pm R-LAB</div>
+                    <div class="time-slot droppable" data-time-slot="4" day-set="R" data-days="7:15-10:15 pm">7:15-10:15 pm R</div>
+
                 
+                </div>
+                    
                 <div class="day droppable" data-day="Friday">
                     <h3>Friday</h3>
-                    <div class="time-slot droppable" data-time-slot="0" day-set="MF" data-days="8:00-9:25 am">8:00-9:25 am MF</div>
-                    <div class="time-slot droppable" data-time-slot="1" day-set="M-F" data-days="8:30-9:25 am">8:30-9:25 am M-F</div>
-                    <div class="time-slot droppable" data-time-slot="2" day-set="MWF" data-days="8:30-9:25 am">8:30-9:25 am MWF</div>
-                    <div class="time-slot droppable" data-time-slot="3" day-set="MWF" data-days="9:35-10:30 am">9:35-10:30 am MWF</div>
-                    <div class="time-slot droppable" data-time-slot="4" day-set="MWF" data-days="10:40-11:35 am">10:40-11:35 am MWF</div>
-                    <div class="time-slot droppable" data-time-slot="5" day-set="MWF" data-days="11:45-12:40 pm">11:45-12:40 pm MWF</div>
-                    <div class="time-slot droppable" data-time-slot="6" day-set="M-F" data-days="1:55-2:50 pm">1:55-2:50 pm M-F</div>
-                    <div class="time-slot droppable" data-time-slot="7" day-set="MWF" data-days="1:55-2:50 pm">1:55-2:50 pm MWF</div>
-                    <div class="time-slot droppable" data-time-slot="8" day-set="MWF" data-days="1:55-2:50 pm">1:55-2:50 pm MWF</div>
-                    <div class="time-slot droppable" data-time-slot="9" day-set="F-LAB" data-days="1:55-2:50 pm">1:55-2:50 pm F-LAB</div>
-                    <div class="time-slot droppable" data-time-slot="10" day-set="MWF" data-days="3:00-3:55 pm">3:00-3:55 pm MWF</div>
-                    <div class="time-slot droppable" data-time-slot="11" day-set="F-LAB" data-days="3:00-5:55 pm">3:00-5:55 pm F-LAB</div>
-                    <div class="time-slot droppable" data-time-slot="12" day-set="MWF" data-days="4:05-5:00 pm">4:05-5:00 pm MWF</div>
-                    <div class="time-slot droppable" data-time-slot="14" day-set="MF" data-days="4:05-5:30 pm">4:05-5:30 pm MF</div>
-                    <div class="time-slot droppable" data-time-slot="17" day-set="F-LAB" data-days="7:15-10:10 pm">7:15-10:10 pm F-LAB</div>
+
+                    <div class="time-slot droppable" data-time-slot="0" day-set="F-LAB" data-days="1:55-4:50 pm">1:55-4:50 pm F-LAB</div>
+
                 </div>
-                
+                    
             </div>
-            
-        
-    <h2>Available Classes</h2>
-    <div class="search-container">
-        <label for="search">Search Classes:</label>
-        <input type="text" id="search" placeholder="Search by class name or code...">
-    </div>
-
-    <div class="scrollable-classes" id="available-classes">
-        <div class="class" draggable="true" data-class="Math 101">Math 101</div>
-        <div class="class" draggable="true" data-class="History 201">History 201</div>
-        <div class="class" draggable="true" data-class="Biology 305">Biology 305</div>
-        <div class="class" draggable="true" data-class="Chemistry 102">Chemistry 102</div>
-        <div class="class" draggable="true" data-class="Physics 401">Physics 401</div>
-        <div class="class" draggable="true" data-class="Art 210">Art 210</div>
-        <div class="class" draggable="true" data-class="Computer Science 101">Computer Science 101</div>
-        <div class="class" draggable="true" data-class="Statistics 202">Statistics 202</div>
-        <div class="class" draggable="true" data-class="Economics 301">Economics 301</div>
-    </div>
-
-    <div class="trash-bin droppable" id="trash-bin">
-        Drop here to remove from schedule
-    </div>
-
-
+        </div>   
     <script>
+
+
 
 
 document.getElementById('add-course-btn').addEventListener('click', () => {
         const courseName = document.getElementById('new-course').value;
-        const startTime = document.getElementById('start-time').value;
-        const endTime = document.getElementById('end-time').value;
-        const selectedDays = Array.from(document.querySelectorAll('.day-button.selected'))
-                                .map(button => button.dataset.days)
-                                .join(', ');
-
-        if (!courseName || !startTime || !endTime || !selectedDays) {
-            alert('Please fill in all fields.');
-            return;
-        }
+        const professorName = document.getElementById('professor-name').value;
+        const sectionNumber = document.getElementById('class_section').value;
+        
 
         const newClass = document.createElement('div');
         newClass.classList.add('class');
         newClass.setAttribute('draggable', 'true');
         newClass.setAttribute('data-class', courseName);
-        newClass.setAttribute('data-days', selectedDays);
-        newClass.setAttribute('data-start-time', startTime);
-        newClass.setAttribute('data-end-time', endTime);
+        newClass.setAttribute('professor-name',professorName);
+        newClass.setAttribute('class_section', sectionNumber);
 
-        newClass.textContent = `${courseName} (${selectedDays} ${startTime} - ${endTime})`;
+
+        newClass.textContent = `${courseName} ${sectionNumber} (${professorName})`;
         
         newClass.addEventListener('dragstart', () => newClass.classList.add('dragging'));
         newClass.addEventListener('dragend', () => newClass.classList.remove('dragging'));
@@ -371,17 +157,12 @@ document.getElementById('add-course-btn').addEventListener('click', () => {
 
         // Clear the form inputs
         document.getElementById('new-course').value = '';
-        document.getElementById('start-time').value = '';
-        document.getElementById('end-time').value = '';
-        document.querySelectorAll('.day-button').forEach(btn => btn.classList.remove('selected'));
+        document.getElementById('professor-name').value = '';
+        document.getElementById('class_section').value = '';
+
     });
 
-    // Add functionality to select day buttons
-    document.querySelectorAll('.day-button').forEach(button => {
-        button.addEventListener('click', () => {
-            button.classList.toggle('selected');
-        });
-    });
+
 
 
 
@@ -442,35 +223,9 @@ trashBin.addEventListener('drop', () => {
         const className = draggingElement.getAttribute('data-class');
         const day = draggingElement.closest('.day').getAttribute('data-day');
         const timeSlot = draggingElement.closest('.time-slot');
-
-        if (timeSlot) {
-            const timeSlotIndex = timeSlot.getAttribute('data-time-slot');
-
-            // Send request to remove class from the schedule
-            fetch('/remove_class', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ day: day, time_slot: timeSlotIndex, class: className })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Successfully removed, append back to available classes
-                    availableClassesContainer.appendChild(draggingElement);
-                    console.log('Class removed successfully:', data.schedule);
-                } else {
-                    console.error('Error removing class:', data.message);
-                }
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-            });
-        }
+        availableClassesContainer.appendChild(draggingElement);
     }
 });
-/////////////
 
 const clearDatabaseButton = document.getElementById('clearDatabaseButton');
 
@@ -502,65 +257,76 @@ clearDatabaseButton.addEventListener('click', () => {
 
 
 
+//KIND OF WORKS, CREATES EXTRA TIME SLOTS WHEN DEALING WITH CLASSES ON FRIDAY
 
-
-
-//////////
-
-       // Submit schedule functionality
-   
-submitButton.addEventListener('click', () => {
-    const newScheduleData = Array.from({ length: 5 }, () => Array(20).fill(null)); // 5 days, 20 time slots
+submitButton.addEventListener('click', async () => {
     const days = document.querySelectorAll('.day');
 
-    days.forEach(day => {
+    // Loop over each day
+    for (let day of days) {
         const dayIndex = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].indexOf(day.getAttribute('data-day'));
         const timeSlots = day.querySelectorAll('.time-slot');
 
-        timeSlots.forEach((slot, index) => {
+        // Loop over each time slot for the day
+        for (let index = 0; index < timeSlots.length; index++) {
+            const slot = timeSlots[index];
             const classElement = slot.querySelector('.class');
 
+            
             if (classElement) {
-                if (!newScheduleData[dayIndex][index]) {
-                    newScheduleData[dayIndex][index] = [];
-                }
-                newScheduleData[dayIndex][index].push(classElement.getAttribute('data-class'));
+                // Create a new schedule array with the current day and time slot filled in
+                const newScheduleData = Array.from({ length: 5 }, () => Array(20).fill(null)); // 5 days, 20 time slots
+                
+                // Populate just the current slot's data
+                newScheduleData[dayIndex][index] = [classElement.getAttribute('data-class')];
 
-                // Collect the day-set value and time value
+                // Collect additional data
                 const daySetValue = slot.getAttribute('day-set');
                 const timeValue = slot.getAttribute('data-days');
+                const profName = classElement.getAttribute('professor-name');
+                const sectionNumber = classElement.getAttribute('class_section');
 
-                // Get the professor's name from the text field
-                const professorName = document.getElementById('professor-name').value;
+                // Prepare the data for the POST request
+                const requestData = {
+                    schedule: newScheduleData, // Include only the filled-in slot data
+                    set: daySetValue,
+                    time: timeValue,
+                    professor: profName,
+                    section: sectionNumber
+                };
 
-                // Send data including the professor's name
-                fetch('/schedule', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ 
-                        schedule: newScheduleData, 
-                        set: daySetValue, 
-                        time: timeValue, 
-                        professor: professorName 
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
+                try {
+                    // Await the fetch request to ensure sequential execution
+                    const response = await fetch('/schedule', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(requestData)
+                    });
+
+                    const data = await response.json();
+
                     if (data.success) {
-                        alert('Schedule submitted successfully!');
+                        console.log('Schedule for', day.getAttribute('data-day'), 'at time slot', index, 'submitted successfully!');
                     } else {
-                        alert('Error submitting schedule: ' + data.message);
+                        console.error('Error submitting schedule for', day.getAttribute('data-day'), 'at time slot', index, ':', data.message);
                     }
-                })
-                .catch((error) => {
-                    console.error('Error:', error);
-                });
+                } catch (error) {
+                    console.error('Error during fetch:', error);
+                }
             }
-        });
-    });
+        }
+    }
+
+    // After all submissions are done, notify the user
+    alert('All schedule submissions completed!');
 });
+
+
+
+ 
+
 
 
     </script>
