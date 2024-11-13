@@ -404,8 +404,13 @@ def add_conflict():
     db.session.commit()
     return jsonify(success=True, message="Conflict added successfully")
 
-@app.route('/schedule', methods=['POST'])
-def schedule():
+
+
+
+
+#########
+@app.route('/scheduleConflict', methods=['POST'])
+def scheduleConflicts():
     data = request.json
     new_schedule = data.get('schedule')
     dayBlocks = data.get('set')
