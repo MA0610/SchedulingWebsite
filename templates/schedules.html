@@ -1,21 +1,14 @@
 {% extends "base.html" %}
 
 {% block content %}
-<!DOCTYPE html>
-<html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Class Schedules</title>
-    <style>
-        body {
-            margin: 20px;
-            overflow: scroll;
-        }
-        .schedule-table {
-            margin-top: 20px;
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
     <script>
         function removeClass(className, professorName, timeSlotTime, classSection) {
             if (confirm(`Are you sure you want to remove ${className} ${classSection} taught by ${professorName}?`)) {
@@ -90,5 +83,4 @@
         </div>
     </div>
 </body>
-</html>
 {% endblock %}
