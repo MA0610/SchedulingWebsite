@@ -53,37 +53,37 @@ def schedule():
     profName = data.get('professor')
     sectionNumber = data.get('section')
 
+    # Ensure the schedule has the correct format
     if new_schedule and len(new_schedule) == NUM_DAYS and all(len(day) == NUM_TIME_SLOTS for day in new_schedule):
         for day_index, day in enumerate(new_schedule):
             for time_slot_index, class_names in enumerate(day):
                 if class_names:  # If there are classes to add
                     day_name = list(day_to_index.keys())[day_index]
-                    day_obj = Day.query.filter_by(name=day_name).first() or Day(name=day_name)
-                    db.session.add(day_obj)
-                    db.session.commit()
+                    day_obj = Day.query.filter_by(name=day_name).first()
 
-                    # Get the corresponding time slot object
+                    # If Day doesn't exist, create it
+                    if not day_obj:
+                        day_obj = Day(name=day_name)
+                        db.session.add(day_obj)
+                        db.session.commit()  # Ensure day is committed first
+
+                    # Get the corresponding time slot object for the day
                     time_slot_obj = TimeSlot.query.filter_by(day_id=day_obj.id, time=timeBlock).first()
                     if not time_slot_obj:
                         time_slot_obj = TimeSlot(day_id=day_obj.id, time=timeBlock)
                         db.session.add(time_slot_obj)
-                        db.session.commit()
+                        db.session.commit()  # Ensure time slot is committed first
 
-                    # Clear existing classes in this time slot for this day
-                    existing_classes = ScheduledClass.query.filter_by(time_slot_id=time_slot_obj.id).all()
-                    for existing_class in existing_classes:
-                        db.session.delete(existing_class)
-
-                    # Add new classes for the current time slot
+                    # Do not clear all existing classes; only add new classes
                     for class_name in class_names:
                         # Ensure that a class with the same section does not already exist for this time slot
-                        class_obj = ScheduledClass.query.filter_by(
+                        existing_class = ScheduledClass.query.filter_by(
                             name=class_name,
                             time_slot_id=time_slot_obj.id,
                             class_section=sectionNumber
                         ).first()
 
-                        if not class_obj:  # Only add if class with same name and section does not exist
+                        if not existing_class:  # Only add if class with same name and section does not exist
                             class_obj = ScheduledClass(
                                 name=class_name,
                                 professor_name=profName,
@@ -93,15 +93,14 @@ def schedule():
                             )
                             db.session.add(class_obj)
 
-                    db.session.commit()
+                    db.session.commit()  # Commit changes to the database after class addition
 
-        # Copy classes to paired days based on dayBlocks (ensure no mismatching sections)
+        # Now copy the classes to paired days based on dayBlocks
         copy_classes(dayBlocks, sectionNumber)
 
         return jsonify(success=True, message="Schedule added successfully")
-
+    
     return jsonify(success=False, message="Invalid input")
-
 
 
 
