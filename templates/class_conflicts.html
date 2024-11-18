@@ -75,24 +75,24 @@
     }
 
     function syncConflicts(checkbox) {
-        const classId = checkbox.dataset.classId; // Get the class ID
-        const conflictClassId = checkbox.dataset.conflictClassId; // Get the conflict class ID
+        const classId = checkbox.dataset.classId;
+        const conflictClassId = checkbox.dataset.conflictClassId;
         const isChecked = checkbox.checked;
 
-        // Select all checkboxes with the same conflict ID and update their state
-        const checkboxes = document.querySelectorAll(
-            `.conflict-checkbox[data-class-id="${classId}"][data-conflict-class-id="${conflictClassId}"]`
+        // Update all checkboxes for this conflict
+        const relatedCheckboxes = document.querySelectorAll(
+            `.conflict-checkbox[data-class-id="${classId}"][data-conflict-class-id="${conflictClassId}"], 
+            .conflict-checkbox[data-class-id="${conflictClassId}"][data-conflict-class-id="${classId}"]`
         );
 
-        checkboxes.forEach(box => {
-            if (box !== checkbox) {
-                box.checked = isChecked; // Sync state
-            }
+        relatedCheckboxes.forEach(box => {
+            box.checked = isChecked;  // Sync state
         });
 
-        // Call the toggleConflict function to update the backend
+        // Update the backend
         toggleConflict(classId, conflictClassId, isChecked);
     }
+
 
     // Function to clear all conflicts
     document.getElementById('clear-conflicts-btn').addEventListener('click', function () {

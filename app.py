@@ -237,6 +237,21 @@ def clear_conflicts():
         return jsonify(success=False, message="An error occurred while clearing conflicts.", error=str(e))
 
 
+@app.route('/detect_conflicts', methods=['GET'])
+def detect_conflicts():
+    conflicts = Conflict.query.all()
+    detected_conflicts = []
+    for conflict in conflicts:
+        class_1 = ScheduledClass.query.get(conflict.class_id)
+        class_2 = ScheduledClass.query.get(conflict.conflict_class_id)
+        if class_1 and class_2:
+            detected_conflicts.append({
+                "class_1": class_1.name,
+                "class_2": class_2.name
+            })
+    return jsonify(detected_conflicts=detected_conflicts)
+
+
 
 @app.route('/clear_database', methods=['POST']) #TEMP
 def clear_database():
