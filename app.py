@@ -181,7 +181,7 @@ def class_conflicts():
 
     return render_template('class_conflicts.html', all_classes=all_classes, conflict_pairs=conflict_pairs)
 
-
+from sqlalchemy import or_
 
 @app.route('/add_conflict', methods=['POST'])
 def add_conflict():
@@ -192,8 +192,14 @@ def add_conflict():
     if not class_id or not conflict_class_id:
         return jsonify(success=False, message="Both class IDs are required.")
 
-    # Ensure conflict doesn’t already exist
-    existing_conflict = Conflict.query.filter_by(class_id=class_id, conflict_class_id=conflict_class_id).first()
+    # Check for existing conflicts in either direction
+    existing_conflict = Conflict.query.filter(
+        or_(
+            (Conflict.class_id == class_id) & (Conflict.conflict_class_id == conflict_class_id),
+            (Conflict.class_id == conflict_class_id) & (Conflict.conflict_class_id == class_id)
+        )
+    ).first()
+
     if existing_conflict:
         return jsonify(success=False, message="This conflict already exists.")
 
@@ -202,6 +208,7 @@ def add_conflict():
     db.session.add(conflict)
     db.session.commit()
     return jsonify(success=True, message="Conflict marked successfully.")
+
 
 @app.route('/remove_conflict', methods=['POST'])
 def remove_conflict():

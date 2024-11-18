@@ -2,6 +2,7 @@
 
 {% block title %}Class Conflicts{% endblock %}
 
+
 {% block content %}
 <div class="container">
     <h1 class="text-center">Class Conflicts</h1>
@@ -30,8 +31,6 @@
                                     <label>
                                         <input type="checkbox" 
                                                class="conflict-checkbox"
-                                               data-class-name="{{ class_info.name }}"
-                                               data-conflict-class-name="{{ conflict_class.name }}"
                                                data-class-id="{{ class_info.id }}"
                                                data-conflict-class-id="{{ conflict_class.id }}"
                                                onchange="syncConflicts(this)"
@@ -64,7 +63,7 @@
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                console.log(data.message); // Log success messages
+                alert(data.message);
             } else {
                 alert('Error: ' + data.message);
             }
@@ -76,22 +75,23 @@
     }
 
     function syncConflicts(checkbox) {
-        const className = checkbox.dataset.className; // Get the class name
-        const conflictClassName = checkbox.dataset.conflictClassName; // Get the conflict class name
+        const classId = checkbox.dataset.classId; // Get the class ID
+        const conflictClassId = checkbox.dataset.conflictClassId; // Get the conflict class ID
         const isChecked = checkbox.checked;
 
-        // Update all checkboxes for the same class and conflict
-        const relatedCheckboxes = document.querySelectorAll(
-            `.conflict-checkbox[data-class-name="${className}"][data-conflict-class-name="${conflictClassName}"], 
-             .conflict-checkbox[data-class-name="${conflictClassName}"][data-conflict-class-name="${className}"]`
+        // Select all checkboxes with the same conflict ID and update their state
+        const checkboxes = document.querySelectorAll(
+            `.conflict-checkbox[data-class-id="${classId}"][data-conflict-class-id="${conflictClassId}"]`
         );
 
-        relatedCheckboxes.forEach(box => {
-            box.checked = isChecked; // Sync the state
+        checkboxes.forEach(box => {
+            if (box !== checkbox) {
+                box.checked = isChecked; // Sync state
+            }
         });
 
-        // Update the backend for the checked or unchecked state
-        toggleConflict(checkbox.dataset.classId, checkbox.dataset.conflictClassId, isChecked);
+        // Call the toggleConflict function to update the backend
+        toggleConflict(classId, conflictClassId, isChecked);
     }
 
     // Function to clear all conflicts
@@ -104,7 +104,7 @@
             .then(data => {
                 if (data.success) {
                     alert(data.message);
-                    location.reload(); // Reload the page to update the conflicts table
+                    location.reload();  // Reload the page to update the conflicts table
                 } else {
                     alert('Error: ' + data.message);
                 }
