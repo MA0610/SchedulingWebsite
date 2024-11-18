@@ -76,9 +76,10 @@
                                             {% for class_info in time_slot.classes %}
                                                 <!-- Check if the class is in conflict -->
                                                 {% set is_conflict = class_info.id in conflicting_class_ids %}
-                                                <span class="{{ 'conflict' if is_conflict else '' }}">
+                                                <span class="{{ 'conflict' if is_conflict else '' }}" title="Conflicts with another class">
                                                     {{ class_info.class_name }} {{ class_info.class_section }} ({{ class_info.professor_name }})
                                                 </span>
+                                                
                                                 
                                                 <!-- Remove button for each class -->
                                                 <button onclick="removeClass('{{ class_info.class_name }}', '{{ class_info.professor_name }}', '{{ time_slot.time }}', '{{ class_info.class_section }}')">Remove</button><br>
