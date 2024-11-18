@@ -5,6 +5,9 @@
 {% block content %}
 <div class="container">
     <h1 class="text-center">Class Conflicts</h1>
+
+    <button id="clear-conflicts-btn" class="btn btn-danger mb-3">Clear All Conflicts</button>
+
     <div class="conflicts-table">
         <table class="table table-bordered">
             <thead>
@@ -26,7 +29,12 @@
                                 {% if conflict_class.id != class_info.id %}
                                     <label>
                                         <input type="checkbox" 
-                                               onchange="toggleConflict('{{ class_info.id }}', '{{ conflict_class.id }}', this.checked)"
+                                               class="conflict-checkbox"
+                                               data-class-name="{{ class_info.name }}"
+                                               data-conflict-class-name="{{ conflict_class.name }}"
+                                               data-class-id="{{ class_info.id }}"
+                                               data-conflict-class-id="{{ conflict_class.id }}"
+                                               onchange="syncConflicts(this)"
                                                {% if (class_info.id, conflict_class.id) in conflict_pairs or (conflict_class.id, class_info.id) in conflict_pairs %}checked{% endif %}>
                                         {{ conflict_class.name }} ({{ conflict_class.professor_name }})
                                     </label><br>
@@ -56,7 +64,7 @@
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert(data.message);
+                console.log(data.message); // Log success messages
             } else {
                 alert('Error: ' + data.message);
             }
@@ -66,5 +74,46 @@
             alert('An error occurred while marking the conflict.');
         });
     }
+
+    function syncConflicts(checkbox) {
+        const className = checkbox.dataset.className; // Get the class name
+        const conflictClassName = checkbox.dataset.conflictClassName; // Get the conflict class name
+        const isChecked = checkbox.checked;
+
+        // Update all checkboxes for the same class and conflict
+        const relatedCheckboxes = document.querySelectorAll(
+            `.conflict-checkbox[data-class-name="${className}"][data-conflict-class-name="${conflictClassName}"], 
+             .conflict-checkbox[data-class-name="${conflictClassName}"][data-conflict-class-name="${className}"]`
+        );
+
+        relatedCheckboxes.forEach(box => {
+            box.checked = isChecked; // Sync the state
+        });
+
+        // Update the backend for the checked or unchecked state
+        toggleConflict(checkbox.dataset.classId, checkbox.dataset.conflictClassId, isChecked);
+    }
+
+    // Function to clear all conflicts
+    document.getElementById('clear-conflicts-btn').addEventListener('click', function () {
+        if (confirm("Are you sure you want to clear all conflicts?")) {
+            fetch('/clear_conflicts', {
+                method: 'POST',
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    location.reload(); // Reload the page to update the conflicts table
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while clearing conflicts.');
+            });
+        }
+    });
 </script>
 {% endblock %}

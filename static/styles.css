@@ -45,8 +45,8 @@ body, html {
     /* height: 100%; */
 }
 .day {
-max-height: 100%; /* Adjust as needed */
-overflow-y: auto; /* Vertical scrolling within each day */
+    max-height: 100%; /* Adjust as needed */
+    overflow-y: auto; /* Vertical scrolling within each day */
 }
 /* Optional styling to visually show that the day is scrollable */
 .day::-webkit-scrollbar {

@@ -104,6 +104,7 @@ def copy_classes(dayBlocks, sectionNumber):
     day_pairs = {
         'MW': ['Monday', 'Wednesday'],
         'MF': ['Monday', 'Friday'],
+        'WF': ['Wednesday', 'Friday'],
         'TR': ['Tuesday', 'Thursday'],
         'MWF': ['Monday', 'Wednesday', 'Friday'],
         'M-F': ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
@@ -215,6 +216,19 @@ def remove_conflict():
         db.session.commit()
         return jsonify(success=True, message="Conflict removed successfully.")
     return jsonify(success=False, message="Conflict not found.")
+
+
+@app.route('/clear_conflicts', methods=['POST'])
+def clear_conflicts():
+    try:
+        # Delete all rows in the Conflict table
+        Conflict.query.delete()
+        db.session.commit()
+        return jsonify(success=True, message="All conflicts cleared successfully.")
+    except Exception as e:
+        db.session.rollback()  # Rollback in case of an error
+        return jsonify(success=False, message="An error occurred while clearing conflicts.", error=str(e))
+
 
 
 @app.route('/clear_database', methods=['POST']) #TEMP
