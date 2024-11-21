@@ -2,10 +2,17 @@
 
 {% block title %}Class Conflicts{% endblock %}
 
+{% block container_class %}scrollable-container{% endblock %}
 
 {% block content %}
 <div class="container">
     <h1 class="text-center">Class Conflicts</h1>
+    <h3>Selected Conflicts</h3>
+    <ul id="conflict-summary">
+        {% for conflict in conflict_pairs %}
+            <li>{{ conflict[0] }} conflicts with {{ conflict[1] }}</li>
+        {% endfor %}
+    </ul>
 
     <button id="clear-conflicts-btn" class="btn btn-danger mb-3">Clear All Conflicts</button>
 
@@ -21,11 +28,14 @@
             </thead>
             <tbody>
                 {% for class_info in all_classes %}
-                    <tr>
+                    <tr data-toggle="collapse" data-target="#conflicts-{{ class_info.id }}" class="clickable">
                         <td>{{ class_info.name }}</td>
                         <td>{{ class_info.professor_name }}</td>
                         <td>{{ class_info.class_section }}</td>
-                        <td>
+                        <td>Click to Expand</td>
+                    </tr>
+                    <tr id="conflicts-{{ class_info.id }}" class="collapse">
+                        <td colspan="4">
                             {% for conflict_class in all_classes %}
                                 {% if conflict_class.id != class_info.id %}
                                     <label>
@@ -46,9 +56,10 @@
         </table>
     </div>
 </div>
+ 
 
 <script>
-    function toggleConflict(classId, conflictClassId, isChecked) {
+    function toggleConflict(classId, conflictClassId, timeSlot, day, isChecked) {
         const url = isChecked ? '/add_conflict' : '/remove_conflict';
         fetch(url, {
             method: 'POST',
@@ -57,7 +68,9 @@
             },
             body: JSON.stringify({
                 class_id: classId,
-                conflict_class_id: conflictClassId
+                conflict_class_id: conflictClassId,
+                time_slot: timeSlot,
+                day: day
             })
         })
         .then(response => response.json())
@@ -78,11 +91,13 @@
         const classId = checkbox.dataset.classId;
         const conflictClassId = checkbox.dataset.conflictClassId;
         const isChecked = checkbox.checked;
+        const timeSlot = checkbox.dataset.timeSlot;
+        const day = checkbox.dataset.day;
+
 
         // Update all checkboxes for this conflict
         const relatedCheckboxes = document.querySelectorAll(
-            `.conflict-checkbox[data-class-id="${classId}"][data-conflict-class-id="${conflictClassId}"], 
-            .conflict-checkbox[data-class-id="${conflictClassId}"][data-conflict-class-id="${classId}"]`
+            `.conflict-checkbox[data-class-id="${classId}"][data-conflict-class-id="${conflictClassId}"][data-time-slot="${timeSlot}"][data-day="${day}"]`
         );
 
         relatedCheckboxes.forEach(box => {
@@ -90,7 +105,7 @@
         });
 
         // Update the backend
-        toggleConflict(classId, conflictClassId, isChecked);
+        toggleConflict(classId, conflictClassId, timeSlot, day,isChecked);
     }
 
 
