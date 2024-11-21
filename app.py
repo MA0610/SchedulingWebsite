@@ -179,7 +179,21 @@ def class_conflicts():
     # Create a set of tuples for quick lookup of existing conflicts
     conflict_pairs = {(conflict.class_id, conflict.conflict_class_id) for conflict in conflicts}
 
-    return render_template('class_conflicts.html', all_classes=all_classes, conflict_pairs=conflict_pairs)
+    # Build a detailed class list with time slot and day data
+    detailed_classes = []
+    for scheduled_class in all_classes:
+        time_slot = TimeSlot.query.get(scheduled_class.time_slot_id)
+        day = Day.query.get(time_slot.day_id) if time_slot else None
+        detailed_classes.append({
+            "id": scheduled_class.id,
+            "name": scheduled_class.name,
+            "professor_name": scheduled_class.professor_name,
+            "class_section": scheduled_class.class_section,
+            "time_slot": time_slot.time if time_slot else "Unknown",
+            "day": day.name if day else "Unknown"
+        })
+
+    return render_template('class_conflicts.html', all_classes=detailed_classes, conflict_pairs=conflict_pairs)
 
 from sqlalchemy import or_
 
