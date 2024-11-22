@@ -48,7 +48,7 @@
                                                data-class-id="{{ class_info.id }}"
                                                data-conflict-class-id="{{ conflict_class.id }}"
                                                onchange="syncConflicts(this)"
-                                               {% if (class_info.id, conflict_class.id) in conflict_pairs or (conflict_class.id, class_info.id) in conflict_pairs %}checked{% endif %}>
+                                               {% if (class_info.name, conflict_class.name) in conflict_pairs or (conflict_class.name, class_info.name) in conflict_pairs %}checked{% endif %}>
                                         {{ conflict_class.name }} ({{ conflict_class.professor_name }}) - 
                                         {{ conflict_class.time_slot }} on {{ conflict_class.day }}
                                     </label><br>
@@ -61,7 +61,6 @@
         </table>
     </div>
 </div>
- 
 
 <script>
     function toggleConflict(classId, conflictClassId, timeSlot, day, isChecked) {
@@ -99,7 +98,6 @@
         const timeSlot = checkbox.dataset.timeSlot;
         const day = checkbox.dataset.day;
 
-
         // Update all checkboxes for this conflict
         const relatedCheckboxes = document.querySelectorAll(
             `.conflict-checkbox[data-class-id="${classId}"][data-conflict-class-id="${conflictClassId}"][data-time-slot="${timeSlot}"][data-day="${day}"]`
@@ -110,9 +108,8 @@
         });
 
         // Update the backend
-        toggleConflict(classId, conflictClassId, timeSlot, day,isChecked);
+        toggleConflict(classId, conflictClassId, timeSlot, day, isChecked);
     }
-
 
     // Function to clear all conflicts
     document.getElementById('clear-conflicts-btn').addEventListener('click', function () {
