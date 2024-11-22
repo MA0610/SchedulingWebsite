@@ -1,6 +1,8 @@
 from flask import Flask, request, jsonify, render_template, Blueprint  
 from typing import Optional, List
-from models import db, Day, TimeSlot, ScheduledClass
+from models import db, Day, TimeSlot, ScheduledClass, Conflict
+from sqlalchemy import or_
+
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///schedules.db'  
@@ -37,11 +39,6 @@ def index():
 @app.route('/schedules', methods=['GET'])
 def get_schedules():
     return jsonify(schedules_3d)
-
-@app.route('/conflict_form')
-def conflict_form():
-    return render_template('conflict.html')
-
 
 # Posts data to database
 @app.route('/schedule', methods=['POST'])
@@ -175,6 +172,105 @@ def copy_classes(dayBlocks, sectionNumber):
 
     db.session.commit()  # Commit changes after copying classes
 
+@app.route('/class_conflicts')
+def class_conflicts():
+    all_classes = ScheduledClass.query.all()  # Retrieve all classes from the database
+    conflicts = Conflict.query.all()
+    
+    # Create a set of tuples for quick lookup of existing conflicts
+    conflict_pairs = set()
+    for conflict in conflicts:
+        class_1 = ScheduledClass.query.get(conflict.class_id)
+        class_2 = ScheduledClass.query.get(conflict.conflict_class_id)
+        
+        # Make sure both classes exist
+        if class_1 and class_2:
+            conflict_pairs.add((class_1.name, class_2.name))  # Use class names, not IDs
+
+    # Build a detailed class list with time slot and day data
+    detailed_classes = []
+    for scheduled_class in all_classes:
+        time_slot = TimeSlot.query.get(scheduled_class.time_slot_id)
+        day = Day.query.get(time_slot.day_id) if time_slot else None
+        detailed_classes.append({
+            "id": scheduled_class.id,
+            "name": scheduled_class.name,
+            "professor_name": scheduled_class.professor_name,
+            "class_section": scheduled_class.class_section,
+            "time_slot": time_slot.time if time_slot else "Unknown",
+            "day": day.name if day else "Unknown"
+        })
+
+    return render_template('class_conflicts.html', all_classes=detailed_classes, conflict_pairs=conflict_pairs)
+
+
+@app.route('/add_conflict', methods=['POST'])
+def add_conflict():
+    data = request.json
+    class_id = data.get('class_id')
+    conflict_class_id = data.get('conflict_class_id')
+
+    if not class_id or not conflict_class_id:
+        return jsonify(success=False, message="Both class IDs are required.")
+
+    # Check for existing conflicts in either direction
+    existing_conflict = Conflict.query.filter(
+        or_(
+            (Conflict.class_id == class_id) & (Conflict.conflict_class_id == conflict_class_id),
+            (Conflict.class_id == conflict_class_id) & (Conflict.conflict_class_id == class_id)
+        )
+    ).first()
+
+    if existing_conflict:
+        return jsonify(success=False, message="This conflict already exists.")
+
+    # Add the conflict
+    conflict = Conflict(class_id=class_id, conflict_class_id=conflict_class_id)
+    db.session.add(conflict)
+    db.session.commit()
+    return jsonify(success=True, message="Conflict marked successfully.")
+
+
+@app.route('/remove_conflict', methods=['POST'])
+def remove_conflict():
+    data = request.json
+    class_id = data.get('class_id')
+    conflict_class_id = data.get('conflict_class_id')
+
+    # Remove the conflict
+    conflict = Conflict.query.filter_by(class_id=class_id, conflict_class_id=conflict_class_id).first()
+    if conflict:
+        db.session.delete(conflict)
+        db.session.commit()
+        return jsonify(success=True, message="Conflict removed successfully.")
+    return jsonify(success=False, message="Conflict not found.")
+
+
+@app.route('/clear_conflicts', methods=['POST'])
+def clear_conflicts():
+    try:
+        # Delete all rows in the Conflict table
+        Conflict.query.delete()
+        db.session.commit()
+        return jsonify(success=True, message="All conflicts cleared successfully.")
+    except Exception as e:
+        db.session.rollback()  # Rollback in case of an error
+        return jsonify(success=False, message="An error occurred while clearing conflicts.", error=str(e))
+
+
+@app.route('/detect_conflicts', methods=['GET'])
+def detect_conflicts():
+    conflicts = Conflict.query.all()
+    detected_conflicts = []
+    for conflict in conflicts:
+        class_1 = ScheduledClass.query.get(conflict.class_id)
+        class_2 = ScheduledClass.query.get(conflict.conflict_class_id)
+        if class_1 and class_2:
+            detected_conflicts.append({
+                "class_1": class_1.name,
+                "class_2": class_2.name
+            })
+    return jsonify(detected_conflicts=detected_conflicts)
 
 
 
@@ -228,37 +324,6 @@ def test():
 
     return jsonify(schedules)
 
-# @app.route('/test', methods=['GET'])
-# def test():
-#     schedules = {}
-#     days = Day.query.all()
-
-#     for day in days:
-#         day_data = {
-#             "name": day.name,
-#             "time_slots": []
-#         }
-#         time_slots = TimeSlot.query.filter_by(day_id=day.id).all()
-
-#         for time_slot in time_slots:
-#             class_info = []
-#             scheduled_classes = ScheduledClass.query.filter_by(time_slot_id=time_slot.id).all()
-
-#             for scheduled_class in scheduled_classes:
-#                 class_info.append({
-#                     "class_name": scheduled_class.name,
-#                     "professor_name": scheduled_class.professor_name,
-#                     "day_blocks": scheduled_class.day_blocks  # Include day_blocks
-#                 })
-
-#             day_data["time_slots"].append({
-#                 "time": time_slot.time,
-#                 "classes": class_info
-#             })
-
-#         schedules[day.name] = day_data
-
-#     return jsonify(schedules)
 
 
 @app.route('/remove_class_db', methods=['POST'])
@@ -304,46 +369,18 @@ def remove_class_db():
         return jsonify(success=False, message="An error occurred while removing the class.", error=str(e))
 
 
-# @app.route('/display_schedules', methods=['GET'])
-# def display_schedules():
-#     schedules = {}
-#     days = Day.query.all()
-
-#     day_order = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
-
-#     for day_name in day_order:
-#         day_obj = Day.query.filter_by(name=day_name).first()
-#         if day_obj:
-#             day_data = {
-#                 "name": day_name,
-#                 "time_slots": []
-#             }
-#             time_slots = TimeSlot.query.filter_by(day_id=day_obj.id).all()
-
-#             for time_slot in time_slots:
-#                 class_info = []
-#                 scheduled_classes = ScheduledClass.query.filter_by(time_slot_id=time_slot.id).all()
-
-#                 for scheduled_class in scheduled_classes:
-#                     class_info.append({
-#                         "class_name": scheduled_class.name,
-#                         "professor_name": scheduled_class.professor_name,
-#                         "day_blocks": scheduled_class.day_blocks,  # Include day_blocks here
-#                     })
-
-#                 day_data["time_slots"].append({
-#                     "time": time_slot.time,
-#                     "classes": class_info
-#                 })
-
-#             schedules[day_name] = day_data
-
-#     return render_template('schedules.html', schedules=schedules)
 
 @app.route('/display_schedules', methods=['GET'])
 def display_schedules():
     schedules = {}
     days = Day.query.all()
+
+    # Get all user-defined conflicts
+    conflicts = Conflict.query.all()
+    conflicting_class_ids = set()
+    for conflict in conflicts:
+        conflicting_class_ids.add(conflict.class_id)
+        conflicting_class_ids.add(conflict.conflict_class_id)
 
     # Iterate through each day and fetch the related time slots and classes
     day_order = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
@@ -363,9 +400,10 @@ def display_schedules():
 
                 for scheduled_class in scheduled_classes:
                     class_info.append({
+                        "id": scheduled_class.id,  # Include the class ID for conflict checking
                         "class_name": scheduled_class.name,
                         "professor_name": scheduled_class.professor_name,
-                        "class_section": scheduled_class.class_section,  # Make sure to pass class_section
+                        "class_section": scheduled_class.class_section,
                         "day_blocks": scheduled_class.day_blocks
                     })
 
@@ -376,66 +414,8 @@ def display_schedules():
 
             schedules[day_name] = day_data
 
-    return render_template('schedules.html', schedules=schedules)
-class Conflict(db.Model):
-    __tablename__ = 'conflicts'
-    id = db.Column(db.Integer, primary_key=True)
-    department1 = db.Column(db.String(10))
-    class_number1 = db.Column(db.String(10))
-    department2 = db.Column(db.String(10))
-    class_number2 = db.Column(db.String(10))
-
-@app.route('/add_conflict', methods=['POST'])
-def add_conflict():
-    data = request.json
-    department1 = data.get('department1')
-    class_number1 = data.get('class_number1')
-    department2 = data.get('department2')
-    class_number2 = data.get('class_number2')
-
-    conflict = Conflict(
-        department1=department1,
-        class_number1=class_number1,
-        department2=department2,
-        class_number2=class_number2
-    )
-    db.session.add(conflict)
-    db.session.commit()
-    return jsonify(success=True, message="Conflict added successfully")
-
-
-
-
-
-#########
-@app.route('/scheduleConflict', methods=['POST'])
-def scheduleConflicts():
-    data = request.json
-    new_schedule = data.get('schedule')
-    dayBlocks = data.get('set')
-    timeBlock = data.get('time')
-    profName = data.get('professor')
-
-    for day_index, day in enumerate(new_schedule):
-        for time_slot_index, class_names in enumerate(day):
-            for class_name in class_names:
-                department, class_number = class_name.split()  # Assuming class_name = "COMP 139"
-                conflicts = Conflict.query.filter(
-                    ((Conflict.department1 == department) & (Conflict.class_number1 == class_number)) |
-                    ((Conflict.department2 == department) & (Conflict.class_number2 == class_number))
-                ).all()
-
-                for conflict in conflicts:
-                    # Find if the conflict class is already in this time slot
-                    conflicting_class = None
-                    if f"{conflict.department1} {conflict.class_number1}" in class_names or \
-                       f"{conflict.department2} {conflict.class_number2}" in class_names:
-                        conflicting_class = conflict
-
-                    if conflicting_class:
-                        return jsonify(success=False, message=f"Conflict detected with {conflicting_class}")
-
-    # Continue with adding to the database if no conflicts are found...
+    # Pass the schedules and conflicting_class_ids to the template
+    return render_template('schedules.html', schedules=schedules, conflicting_class_ids=conflicting_class_ids)
 
 
 if __name__ == '__main__':
