@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}Class Conflicts{% endblock %}
+
+{% block container_class %}scrollable-container{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="text-center">Class Conflicts</h1>
+    <h3>Selected Conflicts</h3>
+    <ul id="conflict-summary">
+        {% for conflict in conflict_pairs %}
+            <li>{{ conflict[0] }} conflicts with {{ conflict[1] }}</li>
+        {% endfor %}
+    </ul>
+
+    <button id="clear-conflicts-btn" class="btn btn-danger mb-3">Clear All Conflicts</button>
+
+    <div class="conflicts-table">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Class Name</th>
+                    <th>Professor</th>
+                    <th>Section</th>
+                    <th>Time Slot</th>
+                    <th>Day</th>
+                    <th>Mark Conflicts</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for class_info in all_classes %}
+                    <tr data-toggle="collapse" data-target="#conflicts-{{ class_info.id }}" class="clickable">
+                        <td>{{ class_info.name }}</td>
+                        <td>{{ class_info.professor_name }}</td>
+                        <td>{{ class_info.class_section }}</td>
+                        <td>{{ class_info.time_slot }}</td>
+                        <td>{{ class_info.day }}</td>
+                        <td>Click to Expand</td>
+                    </tr>
+                    <tr id="conflicts-{{ class_info.id }}" class="collapse">
+                        <td colspan="6">
+                            {% for conflict_class in all_classes %}
+                                {% if conflict_class.id != class_info.id %}
+                                    <label>
+                                        <input type="checkbox" 
+                                               class="conflict-checkbox"
+                                               data-class-id="{{ class_info.id }}"
+                                               data-conflict-class-id="{{ conflict_class.id }}"
+                                               onchange="syncConflicts(this)"
+                                               {% if (class_info.id, conflict_class.id) in conflict_pairs or (conflict_class.id, class_info.id) in conflict_pairs %}checked{% endif %}>
+                                        {{ conflict_class.name }} ({{ conflict_class.professor_name }}) - 
+                                        {{ conflict_class.time_slot }} on {{ conflict_class.day }}
+                                    </label><br>
+                                {% endif %}
+                            {% endfor %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+ 
+
+<script>
+    function toggleConflict(classId, conflictClassId, timeSlot, day, isChecked) {
+        const url = isChecked ? '/add_conflict' : '/remove_conflict';
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                class_id: classId,
+                conflict_class_id: conflictClassId,
+                time_slot: timeSlot,
+                day: day
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while marking the conflict.');
+        });
+    }
+
+    function syncConflicts(checkbox) {
+        const classId = checkbox.dataset.classId;
+        const conflictClassId = checkbox.dataset.conflictClassId;
+        const isChecked = checkbox.checked;
+        const timeSlot = checkbox.dataset.timeSlot;
+        const day = checkbox.dataset.day;
+
+
+        // Update all checkboxes for this conflict
+        const relatedCheckboxes = document.querySelectorAll(
+            `.conflict-checkbox[data-class-id="${classId}"][data-conflict-class-id="${conflictClassId}"][data-time-slot="${timeSlot}"][data-day="${day}"]`
+        );
+
+        relatedCheckboxes.forEach(box => {
+            box.checked = isChecked;  // Sync state
+        });
+
+        // Update the backend
+        toggleConflict(classId, conflictClassId, timeSlot, day,isChecked);
+    }
+
+
+    // Function to clear all conflicts
+    document.getElementById('clear-conflicts-btn').addEventListener('click', function () {
+        if (confirm("Are you sure you want to clear all conflicts?")) {
+            fetch('/clear_conflicts', {
+                method: 'POST',
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    location.reload();  // Reload the page to update the conflicts table
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while clearing conflicts.');
+            });
+        }
+    });
+</script>
+{% endblock %}
