@@ -1,14 +1,24 @@
 {% extends "base.html" %}
 
-{% block content %}
+{% block container_class %}scrollable-container{% endblock %}
 
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Class Schedules</title>
-    <link rel="stylesheet" href="styles.css">
-</head>
-
+    <style>
+        .schedule-table {
+            margin-top: 20px;
+        }
+        /* Add conflict styling */
+        .conflict {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
     <script>
         function removeClass(className, professorName, timeSlotTime, classSection) {
             if (confirm(`Are you sure you want to remove ${className} ${classSection} taught by ${professorName}?`)) {
@@ -57,14 +67,17 @@
                     {% for day in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"] %}
                         {% if schedules[day] %}
                             {% for time_slot in schedules[day].time_slots %}
-                                {% if time_slot.classes %}
+                                {% if time_slot.classes %}  <!-- Only show time slots that have classes -->
                                     <tr>
                                         <td>{{ day }}</td>
                                         <td>{{ time_slot.time }}</td>
                                         <td>
                                             {% for class_info in time_slot.classes %}
-                                                <!-- Display class name, section, and professor -->
-                                                {{ class_info.class_name }} {{ class_info.class_section }} ({{ class_info.professor_name }})
+                                                <!-- Check if the class is in conflict -->
+                                                {% set is_conflict = class_info.id in conflicting_class_ids %}
+                                                <span class="{{ 'conflict' if is_conflict else '' }}" title="Conflicts with another class">
+                                                    {{ class_info.class_name }} {{ class_info.class_section }} ({{ class_info.professor_name }})
+                                                </span>
                                                 
                                                 <!-- Remove button for each class -->
                                                 <button onclick="removeClass('{{ class_info.class_name }}', '{{ class_info.professor_name }}', '{{ time_slot.time }}', '{{ class_info.class_section }}')">Remove</button><br>
@@ -83,4 +96,5 @@
         </div>
     </div>
 </body>
+</html>
 {% endblock %}
