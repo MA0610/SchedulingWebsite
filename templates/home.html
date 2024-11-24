@@ -1,6 +1,6 @@
 
 {% extends "base.html" %}
-{% block title %}Class Schedule{% endblock %}
+{% block title %}Add Courses{% endblock %}
 
 {% block content %}
 <head>
@@ -48,7 +48,7 @@
             <button type="button" id="submitButton">Submit Schedule</button>  
 
             <button type="button" id="clearDatabaseButton">Clear Schedule</button>
-
+            <br></br>
 
             <h3>Directions</h3>
             <p1>1. Create a course by entering the info, once down press the "Add Course" button.
@@ -340,7 +340,21 @@ submitButton.addEventListener('click', async () => {
 });
 
 
+document.getElementById('search').addEventListener('input', function () {
+    const searchQuery = this.value.toLowerCase();  // Get the search query and convert to lowercase for case-insensitive search
+    const courses = document.querySelectorAll('#available-classes .class'); // Get all course elements
 
+    courses.forEach(course => {
+        const courseName = course.getAttribute('data-class').toLowerCase(); // Get the course name (stored in data-class attribute)
+
+        // If the course name contains the search query, show the course, otherwise hide it
+        if (courseName.includes(searchQuery)) {
+            course.style.display = '';  // Show the course
+        } else {
+            course.style.display = 'none';  // Hide the course
+        }
+    });
+});
  
 
 
