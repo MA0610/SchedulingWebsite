@@ -7,6 +7,13 @@
 {% block content %}
 <div class="container">
     <h1 class="text-center">Class Conflicts</h1>
+    <h1>Directions:</h1>
+    <p1>1. To mark a class with a conflict click on "Click to expand" text under the "Mark Conflicts" column.</p1>
+    <p1>2. This will show all the classes with a textbox, you can then click on the course(s) that the selected course may have conflicts with and this will list the course(s) as red in the "Display Schedule" section which you can access in the Navigation Bar at the top of the screen.</p1>
+    <p1>3. Clicking one course will mark all versions of that course across all days.</p1>
+    <p1>4. If a course has a conflict look to see which course the conflict is assocated with under the "Selected Conflicts" section above the "Clear All Conflicts" button. You will then be able to email the professor the class is assocated with to discuss and deal with the conflict.</p1>
+    <p1>5. Once all the classes have been finalized by the registrar (this website does not submit anything to the registar) you can click the "Clear All Conflicts" button to clear all the conflicts.</p1>
+    
     <h3>Selected Conflicts</h3>
     <ul id="conflict-summary">
         {% for conflict in conflict_pairs %}
