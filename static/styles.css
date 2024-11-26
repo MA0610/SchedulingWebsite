@@ -28,6 +28,8 @@ body, html {
     border-right: 2px solid #ccc;
     min-width: 250px; /* Ensure a minimum width */
     box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    overflow-y: auto;
+
 }
 /* Right content (schedule + toolkit) */
 .content {
@@ -42,11 +44,11 @@ body, html {
     grid-template-columns: repeat(5, 1fr); /* Columns for each day */
     grid-gap: 10px;
     overflow-y: auto;
-    max-height: 500px;
+    /* height: 100%; */
 }
 .day {
-max-height: 100%; /* Adjust as needed */
-overflow-y: auto; /* Vertical scrolling within each day */
+    max-height: 100%; /* Adjust as needed */
+    overflow-y: auto; /* Vertical scrolling within each day */
 }
 /* Optional styling to visually show that the day is scrollable */
 .day::-webkit-scrollbar {
@@ -195,6 +197,10 @@ button:hover {
     .addCourse {
         min-width: 100%; /* Ensure the side panel stacks vertically */
     }
+}
+.conflict {
+    color: red;
+    font-weight: bold;
 }
 .scrollable-container {
     max-height: 100vh; /* Adjust to fit your needs */
