@@ -32,6 +32,8 @@
                 <button id="add-course-btn">Add Course</button>
             </div>
             <h2>Available Classes</h2>
+
+            <!-- Creation of Class Search Bar -->
             <div class="search-container">
                 <label for="search">Search Classes:</label>
                 <input type="text" id="search" placeholder="Search by class name or code...">
@@ -45,6 +47,7 @@
                 Drop here to remove from schedule
             </div>
 
+            <!-- Creation of Submit Button and Clear Database Button -->
             <button type="button" id="submitButton">Submit Schedule</button>  
 
             <button type="button" id="clearDatabaseButton">Clear Schedule</button>
@@ -68,7 +71,7 @@
         </div>  
 
          
-
+        <!-- Time slots -->
         <div class="content">
             <div class="schedule">
                 <div class="day droppable" data-day="Monday">
@@ -142,14 +145,17 @@
                     <div class="time-slot droppable" data-time-slot="0" day-set="F-LAB" data-days="1:55-4:50 pm">1:55-4:50 pm F-LAB</div>
 
                 </div>
-                    
+                <br></br>
+                <br></br>
+  
             </div>
         </div>   
+        
     <script>
 
 
 
-
+// Event listener to make add course work
 document.getElementById('add-course-btn').addEventListener('click', () => {
         const courseName = document.getElementById('new-course').value;
         const professorName = document.getElementById('professor-name').value;
@@ -243,6 +249,8 @@ trashBin.addEventListener('drop', () => {
     }
 });
 
+
+// Clear Database Button Functionality
 const clearDatabaseButton = document.getElementById('clearDatabaseButton');
 
 clearDatabaseButton.addEventListener('click', () => {
@@ -273,8 +281,7 @@ clearDatabaseButton.addEventListener('click', () => {
 
 
 
-//KIND OF WORKS, CREATES EXTRA TIME SLOTS WHEN DEALING WITH CLASSES ON FRIDAY
-
+// Submit Button Functionality
 submitButton.addEventListener('click', async () => {
     const days = document.querySelectorAll('.day');
 
@@ -291,7 +298,7 @@ submitButton.addEventListener('click', async () => {
             
             if (classElement) {
                 // Create a new schedule array with the current day and time slot filled in
-                const newScheduleData = Array.from({ length: 5 }, () => Array(20).fill(null)); // 5 days, 20 time slots
+                const newScheduleData = Array.from({ length: 5 }, () => Array(20).fill(null)); 
                 
                 // Populate just the current slot's data
                 newScheduleData[dayIndex][index] = [classElement.getAttribute('data-class')];
@@ -304,7 +311,7 @@ submitButton.addEventListener('click', async () => {
 
                 // Prepare the data for the POST request
                 const requestData = {
-                    schedule: newScheduleData, // Include only the filled-in slot data
+                    schedule: newScheduleData, 
                     set: daySetValue,
                     time: timeValue,
                     professor: profName,
@@ -336,10 +343,10 @@ submitButton.addEventListener('click', async () => {
     }
 
     // After all submissions are done, notify the user
-    alert('All schedule submissions completed!');
+    alert('All schedule submission(s) completed!');
 });
 
-
+// Class Search Event Listener 
 document.getElementById('search').addEventListener('input', function () {
     const searchQuery = this.value.toLowerCase();  // Get the search query and convert to lowercase for case-insensitive search
     const courses = document.querySelectorAll('#available-classes .class'); // Get all course elements
@@ -360,5 +367,8 @@ document.getElementById('search').addEventListener('input', function () {
 
 
     </script>
+
+
 </body>
+
 {% endblock %}
