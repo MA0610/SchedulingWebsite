@@ -28,6 +28,7 @@ body, html {
     border-right: 2px solid #ccc;
     min-width: 250px; /* Ensure a minimum width */
     box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    overflow-y: auto;
 }
 /* Right content (schedule + toolkit) */
 .content {
@@ -45,8 +46,8 @@ body, html {
     max-height: 500px;
 }
 .day {
-max-height: 100%; /* Adjust as needed */
-overflow-y: auto; /* Vertical scrolling within each day */
+    max-height: 100%; /* Adjust as needed */
+    overflow-y: auto; /* Vertical scrolling within each day */
 }
 /* Optional styling to visually show that the day is scrollable */
 .day::-webkit-scrollbar {

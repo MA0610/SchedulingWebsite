@@ -213,20 +213,39 @@ def add_conflict():
     if not class_id or not conflict_class_id:
         return jsonify(success=False, message="Both class IDs are required.")
 
-    # Check for existing conflicts in either direction
-    existing_conflict = Conflict.query.filter(
-        or_(
-            (Conflict.class_id == class_id) & (Conflict.conflict_class_id == conflict_class_id),
-            (Conflict.class_id == conflict_class_id) & (Conflict.conflict_class_id == class_id)
-        )
-    ).first()
+    # Retrieve the classes to find their sections and day blocks
+    class_1 = ScheduledClass.query.get(class_id)
+    class_2 = ScheduledClass.query.get(conflict_class_id)
 
-    if existing_conflict:
-        return jsonify(success=False, message="This conflict already exists.")
+    if not class_1 or not class_2:
+        return jsonify(success=False, message="Classes not found.")
 
-    # Add the conflict
-    conflict = Conflict(class_id=class_id, conflict_class_id=conflict_class_id)
-    db.session.add(conflict)
+    # Add conflicts for all related sections
+    related_classes_1 = ScheduledClass.query.filter_by(
+        name=class_1.name,
+        class_section=class_1.class_section
+    ).all()
+
+    related_classes_2 = ScheduledClass.query.filter_by(
+        name=class_2.name,
+        class_section=class_2.class_section
+    ).all()
+
+    for related_class_1 in related_classes_1:
+        for related_class_2 in related_classes_2:
+            # Check for existing conflicts
+            existing_conflict = Conflict.query.filter(
+                or_(
+                    (Conflict.class_id == related_class_1.id) & (Conflict.conflict_class_id == related_class_2.id),
+                    (Conflict.class_id == related_class_2.id) & (Conflict.conflict_class_id == related_class_1.id)
+                )
+            ).first()
+
+            if not existing_conflict:
+                # Add the conflict
+                conflict = Conflict(class_id=related_class_1.id, conflict_class_id=related_class_2.id)
+                db.session.add(conflict)
+
     db.session.commit()
     return jsonify(success=True, message="Conflict marked successfully.")
 
