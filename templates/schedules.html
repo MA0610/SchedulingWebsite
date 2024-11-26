@@ -32,8 +32,8 @@
                     body: JSON.stringify({
                         class_name: className,
                         professor_name: professorName,
-                        time_slot_time: timeSlotTime,  // Send time as a string
-                        class_section: classSection  // Pass class section
+                        time_slot_time: timeSlotTime,  
+                        class_section: classSection  
                     })
                 })
                 .then(response => response.json())
@@ -99,8 +99,12 @@
                     {% endfor %}
                 </tbody>
             </table>
+            <br></br>
+            <br></br>
+
         </div>
     </div>
 </body>
+
 </html>
 {% endblock %}
