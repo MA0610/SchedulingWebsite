@@ -256,13 +256,47 @@ def remove_conflict():
     class_id = data.get('class_id')
     conflict_class_id = data.get('conflict_class_id')
 
-    # Remove the conflict
-    conflict = Conflict.query.filter_by(class_id=class_id, conflict_class_id=conflict_class_id).first()
-    if conflict:
-        db.session.delete(conflict)
-        db.session.commit()
-        return jsonify(success=True, message="Conflict removed successfully.")
-    return jsonify(success=False, message="Conflict not found.")
+    # Retrieve the classes to find their sections and day blocks
+    class_1 = ScheduledClass.query.get(class_id)
+    class_2 = ScheduledClass.query.get(conflict_class_id)
+
+    if not class_1 or not class_2:
+        return jsonify(success=False, message="Classes not found.")
+
+    # Find all related classes for the sections of both classes
+    related_classes_1 = ScheduledClass.query.filter_by(
+        name=class_1.name,
+        class_section=class_1.class_section
+    ).all()
+
+    related_classes_2 = ScheduledClass.query.filter_by(
+        name=class_2.name,
+        class_section=class_2.class_section
+    ).all()
+
+    # Remove all conflicts involving any related sections
+    for related_class_1 in related_classes_1:
+        for related_class_2 in related_classes_2:
+            conflict = Conflict.query.filter_by(
+                class_id=related_class_1.id,
+                conflict_class_id=related_class_2.id
+            ).first()
+
+            if conflict:
+                db.session.delete(conflict)
+
+            # Also check for conflicts in reverse order
+            reverse_conflict = Conflict.query.filter_by(
+                class_id=related_class_2.id,
+                conflict_class_id=related_class_1.id
+            ).first()
+
+            if reverse_conflict:
+                db.session.delete(reverse_conflict)
+
+    db.session.commit()
+    return jsonify(success=True, message="Conflict removed successfully.")
+
 
 
 @app.route('/clear_conflicts', methods=['POST'])
